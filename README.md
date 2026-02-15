@@ -1,36 +1,164 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Git Visual Emulator
 
-## Getting Started
+An interactive, visual-first Git learning platform built to help developers truly understand how Git works under the hood.
 
-First, run the development server:
+Instead of memorizing commands, users *see* branches, merges, rebases, and commit history evolve in real-time.
+
+---
+
+## 🌑 Built With
+
+* **Next.js (App Router)**
+* **TypeScript**
+* **Tailwind CSS**
+* **shadcn/ui**
+* Fully Client-Side Architecture
+
+---
+
+## 🎯 Project Vision
+
+Git is powerful — but confusing.
+
+This project aims to:
+
+* Visualize core Git internals
+* Teach essential Git workflows interactively
+* Provide structured exercises
+* Simulate Git behavior safely in the browser
+
+This is not a full Git reimplementation — it focuses only on **visualizable, high-impact commands**.
+
+---
+
+## 🖥 Current Status
+
+✅ Landing Page Complete
+🔄 Git Engine (In Progress)
+🔄 Interactive Emulator (Upcoming)
+
+---
+
+## 📚 V1 Learning Path (Core Git Foundations)
+
+The first version will focus only on the most essential and visual Git commands:
+
+### Supported Commands (V1)
+
+* `git init`
+* `git commit`
+* `git branch`
+* `git checkout`
+* `git merge`
+* `git rebase`
+* `git cherry-pick`
+
+These commands cover:
+
+* Commit graph creation
+* Branch pointers
+* HEAD movement
+* Fast-forward merges
+* Merge commits (multiple parents)
+* History rewriting (rebase)
+* Selective commit replay
+
+Commands like `stash`, `reset`, `reflog`, `submodules`, `hooks`, etc. are intentionally **out of scope for V1**.
+
+---
+
+## 🧠 Architecture Overview
+
+The project is structured into four main layers:
+
+```
+1. Git Engine (Pure Logic Layer)
+2. Command Parser
+3. Exercise System
+4. UI Layer
+```
+
+The Git engine models:
+
+* Commits as graph nodes
+* Branch references as pointers
+* HEAD state (branch or detached)
+* Merge commits with multiple parents
+* Rebase transformations
+* Cherry-pick duplication logic
+
+No backend.
+No database.
+Fully client-side simulation.
+
+---
+
+## 🎨 Design Philosophy
+
+* Dark-mode only
+* Git-inspired accent (`#F05032`)
+* Minimal, developer-focused aesthetic
+* Clean spacing and responsive layout
+* Premium SaaS-style presentation
+
+---
+
+## 🛠 Local Development
+
+Clone the repository:
+
+```bash
+git clone https://github.com/your-username/git-visual-emulator.git
+cd git-visual-emulator
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📌 Why This Project?
 
-To learn more about Next.js, take a look at the following resources:
+This project demonstrates:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* State modeling
+* Graph data structures
+* Command parsing
+* System design thinking
+* Interactive UI architecture
+* Developer tooling mindset
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This is not a CRUD app.
+It is a visual Git engine built in the browser.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚧 Roadmap (V1)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* [ ] Build core Git engine
+* [ ] Implement commit graph logic
+* [ ] Implement merge logic (fast-forward + merge commit)
+* [ ] Implement rebase logic
+* [ ] Implement cherry-pick logic
+* [ ] Build interactive terminal UI
+* [ ] Connect engine to graph visualization
+* [ ] Add structured exercise validation
+
+---
+
+### ✨ Built for developers who think visually.
