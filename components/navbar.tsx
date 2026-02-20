@@ -95,7 +95,7 @@ export default function Navbar() {
                     className={`mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 transition-all duration-300`}
                 >
                     <div
-                        className={`flex items-center justify-between h-[72px] px-6 rounded-2xl border transition-all duration-300 ${scrolled
+                        className={`flex items-center justify-between h-[72px] px-4 sm:px-6 rounded-2xl border transition-all duration-300 gap-4 overflow-hidden ${scrolled
                             ? "bg-surface/90 backdrop-blur-xl border-border shadow-lg shadow-black/20"
                             : "bg-surface/60 backdrop-blur-md border-border/50"
                             }`}
