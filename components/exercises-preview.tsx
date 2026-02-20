@@ -77,81 +77,90 @@ export default function ExercisesPreview() {
 
                 {/* Exercise Steps */}
                 <div className="reveal overflow-hidden">
-                    <div className="flex flex-col lg:flex-row lg:items-stretch lg:justify-between lg:flex-nowrap gap-6 lg:gap-4">
-                        {exercises.map((exercise, index) => (
-                            <div
-                                key={exercise.step}
-                                className="relative flex-1 min-w-0"
-                            >
-                                {/* Exercise Card */}
+                    <div className="flex flex-col lg:flex-row lg:items-stretch lg:flex-nowrap gap-6 lg:gap-0">
+                        {exercises.flatMap((exercise, index) => {
+                            const items = [
                                 <div
-                                    className={`relative flex flex-col items-center p-6 rounded-2xl border transition-all duration-300 h-full group ${exercise.status === "current"
-                                        ? "bg-surface border-accent/40 shadow-lg shadow-accent/5"
-                                        : exercise.status === "complete"
-                                            ? "bg-surface border-border hover:border-accent/20"
-                                            : "bg-surface/60 border-border/60"
-                                        }`}
-                                    style={{ animationDelay: `${index * 0.1}s` }}
+                                    key={`card-${exercise.step}`}
+                                    className="flex-1 min-w-0"
                                 >
-                                    {/* Step Number Circle */}
+                                    {/* Exercise Card */}
                                     <div
-                                        className={`flex items-center justify-center w-10 h-10 rounded-full mb-4 text-sm font-bold transition-all ${exercise.status === "current"
-                                            ? "bg-accent text-white pulse-glow"
+                                        className={`relative flex flex-col items-center p-6 rounded-2xl border transition-all duration-300 h-full group ${exercise.status === "current"
+                                            ? "bg-surface border-accent/40 shadow-lg shadow-accent/5"
                                             : exercise.status === "complete"
-                                                ? "bg-accent/20 text-accent border border-accent/30"
-                                                : "bg-muted-surface text-text-secondary border border-border"
+                                                ? "bg-surface border-border hover:border-accent/20"
+                                                : "bg-surface/60 border-border/60"
                                             }`}
+                                        style={{ animationDelay: `${index * 0.1}s` }}
                                     >
-                                        {exercise.status === "complete" ? (
-                                            <svg
-                                                width="16"
-                                                height="16"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="3"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            >
-                                                <polyline points="20 6 9 17 4 12" />
-                                            </svg>
-                                        ) : (
-                                            exercise.step
+                                        {/* Step Number Circle */}
+                                        <div
+                                            className={`flex items-center justify-center w-10 h-10 rounded-full mb-4 text-sm font-bold transition-all ${exercise.status === "current"
+                                                ? "bg-accent text-white pulse-glow"
+                                                : exercise.status === "complete"
+                                                    ? "bg-accent/20 text-accent border border-accent/30"
+                                                    : "bg-muted-surface text-text-secondary border border-border"
+                                                }`}
+                                        >
+                                            {exercise.status === "complete" ? (
+                                                <svg
+                                                    width="16"
+                                                    height="16"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="3"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <polyline points="20 6 9 17 4 12" />
+                                                </svg>
+                                            ) : (
+                                                exercise.step
+                                            )}
+                                        </div>
+
+                                        <h3
+                                            className={`text-sm font-semibold text-center mb-1.5 ${exercise.status === "upcoming"
+                                                ? "text-text-secondary"
+                                                : "text-text-primary"
+                                                }`}
+                                        >
+                                            {exercise.title}
+                                        </h3>
+
+                                        <p className="text-xs text-text-secondary text-center leading-relaxed">
+                                            {exercise.description}
+                                        </p>
+
+                                        {/* Current indicator */}
+                                        {exercise.status === "current" && (
+                                            <div className="absolute -top-px left-4 right-4 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent rounded-full" />
                                         )}
                                     </div>
-
-                                    <h3
-                                        className={`text-sm font-semibold text-center mb-1.5 ${exercise.status === "upcoming"
-                                            ? "text-text-secondary"
-                                            : "text-text-primary"
-                                            }`}
-                                    >
-                                        {exercise.title}
-                                    </h3>
-
-                                    <p className="text-xs text-text-secondary text-center leading-relaxed">
-                                        {exercise.description}
-                                    </p>
-
-                                    {/* Current indicator */}
-                                    {exercise.status === "current" && (
-                                        <div className="absolute -top-px left-4 right-4 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent rounded-full" />
-                                    )}
                                 </div>
+                            ];
 
-                                {/* Connector line - desktop only, positioned absolutely */}
-                                {index < exercises.length - 1 && (
-                                    <div className="hidden lg:block absolute top-1/2 -right-[calc(0.5rem+1px)] w-4 h-[2px] -translate-y-1/2 z-10">
+                            {/* Connector line - flex item between cards, desktop only */ }
+                            if (index < exercises.length - 1) {
+                                items.push(
+                                    <div
+                                        key={`connector-${exercise.step}`}
+                                        className="hidden lg:flex items-center w-4 shrink-0"
+                                    >
                                         <div
-                                            className={`w-full h-full ${exercise.status === "complete"
+                                            className={`w-full h-[2px] ${exercise.status === "complete"
                                                 ? "bg-gradient-to-r from-accent to-accent/50"
                                                 : "bg-border"
                                                 }`}
                                         />
                                     </div>
-                                )}
-                            </div>
-                        ))}
+                                );
+                            }
+
+                            return items;
+                        })}
                     </div>
                 </div>
 
