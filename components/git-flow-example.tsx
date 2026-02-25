@@ -113,41 +113,59 @@ export interface GitFlowExampleProps {
 }
 
 // Resize listener component
-function FlowResizer() {
+function FlowResizer({ wrapperRef, nodes }: { wrapperRef: React.RefObject<HTMLDivElement | null>; nodes: Node[] }) {
     const { fitView } = useReactFlow();
 
     React.useEffect(() => {
+        let timeoutId: NodeJS.Timeout;
+
         const resizeObserver = new ResizeObserver(() => {
-            window.requestAnimationFrame(() => {
-                fitView({ padding: 0.25, minZoom: 0.5, maxZoom: 1.2 });
-            });
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                window.requestAnimationFrame(() => {
+                    fitView({ padding: 0.35, minZoom: 0.1, maxZoom: 1.1 });
+                });
+            }, 40);
         });
 
-        // Observe the closest parent that dictates width
-        const flowEl = document.querySelector('.react-flow');
-        if (flowEl) {
-            resizeObserver.observe(flowEl);
+        if (wrapperRef.current) {
+            resizeObserver.observe(wrapperRef.current);
         }
 
-        return () => resizeObserver.disconnect();
-    }, [fitView]);
+        return () => {
+            clearTimeout(timeoutId);
+            resizeObserver.disconnect();
+        };
+    }, [fitView, wrapperRef]);
+
+    React.useEffect(() => {
+        // Trigger fitView whenever nodes data changes or on mount (e.g. tabs change)
+        const timeout = setTimeout(() => {
+            window.requestAnimationFrame(() => {
+                fitView({ padding: 0.35, minZoom: 0.1, maxZoom: 1.1 });
+            });
+        }, 50);
+        return () => clearTimeout(timeout);
+    }, [nodes, fitView]);
 
     return null;
 }
 
 // Main wrapper
 export function GitFlowExample({ nodes, edges, className }: GitFlowExampleProps) {
+    const wrapperRef = React.useRef<HTMLDivElement>(null);
+
     return (
-        <div className={cn("w-full h-[280px] md:h-[360px] lg:h-[400px] xl:h-[440px] bg-surface/50 rounded-2xl border border-border/40 overflow-hidden shadow-[inset_0_2px_20px_rgba(0,0,0,0.15)] relative", className)}>
+        <div ref={wrapperRef} className={cn("w-full h-[280px] md:h-[360px] lg:h-[400px] xl:h-[440px] bg-surface/50 rounded-2xl border border-border/40 overflow-hidden shadow-[inset_0_2px_20px_rgba(0,0,0,0.15)] relative", className)}>
             <ReactFlowProvider>
-                <FlowResizer />
+                <FlowResizer wrapperRef={wrapperRef} nodes={nodes} />
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
                     nodeTypes={nodeTypes}
                     edgeTypes={edgeTypes}
                     fitView
-                    fitViewOptions={{ padding: 0.25, minZoom: 0.5, maxZoom: 1.2 }}
+                    fitViewOptions={{ padding: 0.35, minZoom: 0.1, maxZoom: 1.1 }}
                     panOnDrag={false}
                     panOnScroll={false}
                     zoomOnScroll={false}

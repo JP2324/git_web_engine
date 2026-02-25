@@ -58,9 +58,9 @@ export function DocsSection({ id, title, command, description, beforeNodes, befo
             <Card className="rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.3)] border-border/30 bg-gradient-to-br from-surface/40 to-surface/10 backdrop-blur-md overflow-hidden transition-all duration-500">
                 <CardContent className="p-6 md:p-8 lg:p-10">
                     <Tabs defaultValue="after" className="w-full">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 pb-4 sm:pb-0 gap-6">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 pb-4 sm:pb-0 gap-6 sm:px-5 md:px-0 sm:py-3 md:py-0">
                             <h3 className="text-base md:text-lg font-semibold text-text-primary tracking-tight">Visual Example</h3>
-                            <TabsList className="relative w-full sm:w-[280px] h-11 bg-surface/80 p-1 rounded-full shadow-inner border border-border/40 grid grid-cols-2 backdrop-blur-sm">
+                            <TabsList className="relative w-full sm:w-[280px] h-11 bg-surface/80 p-1 sm:pr-2 md:pr-1 sm:gap-2 md:gap-0 rounded-full shadow-inner border border-border/40 grid grid-cols-2 backdrop-blur-sm">
                                 <TabsTrigger value="before" className="rounded-full z-10 font-medium text-sm transition-all duration-300 data-[state=active]:bg-gradient-to-b data-[state=active]:from-accent data-[state=active]:to-accent-hover data-[state=active]:text-white data-[state=active]:shadow-[0_0_15px_rgba(240,80,50,0.4)]">Before</TabsTrigger>
                                 <TabsTrigger value="after" className="rounded-full z-10 font-medium text-sm transition-all duration-300 data-[state=active]:bg-gradient-to-b data-[state=active]:from-accent data-[state=active]:to-accent-hover data-[state=active]:text-white data-[state=active]:shadow-[0_0_15px_rgba(240,80,50,0.4)]">After</TabsTrigger>
                             </TabsList>

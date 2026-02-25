@@ -145,53 +145,98 @@ export default function Navbar() {
                 </div>
             </nav>
 
-            {/* Mobile Sheet Overlay */}
-            {mobileOpen && (
-                <div className="fixed inset-0 z-[60]">
-                    {/* Backdrop */}
-                    <div
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                        onClick={() => setMobileOpen(false)}
-                    />
+            {/* Tablet Menu Overlay (640px - 767px) Specific Fixes */}
+            <div
+                className={`hidden sm:block md:hidden fixed inset-0 z-[60] ${mobileOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                aria-hidden={!mobileOpen}
+            >
+                {/* Backdrop - High Z, Fixed, Solid */}
+                <div
+                    className={`fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300 ease-in-out ${mobileOpen ? 'opacity-100' : 'opacity-0'}`}
+                    onClick={() => setMobileOpen(false)}
+                />
 
-                    {/* Sheet Panel */}
-                    <div className="absolute right-0 top-0 bottom-0 w-[300px] max-w-[calc(100vw-2rem)] bg-surface border-l border-border shadow-2xl animate-slide-in">
-                        <div className="flex items-center justify-between px-6 h-[72px] border-b border-border">
-                            <span className="text-text-primary font-semibold">Menu</span>
-                            <button
+                {/* Fixed Overlay Panel */}
+                <div
+                    className={`fixed right-0 top-0 h-[100vh] w-[70vw] bg-background border-l border-border shadow-2xl z-[70] transition-transform duration-300 ease-out transform ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                >
+                    <div className="flex items-center justify-between px-6 h-[72px] border-b border-border">
+                        <span className="text-text-primary font-semibold">Menu</span>
+                        <button
+                            onClick={() => setMobileOpen(false)}
+                            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+                            aria-label="Close menu"
+                        >
+                            <CloseIcon />
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col p-6 gap-1">
+                        {navLinks.map((link) => (
+                            <a
+                                key={link.label}
+                                href={link.href}
                                 onClick={() => setMobileOpen(false)}
-                                className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-                                aria-label="Close menu"
+                                className="px-4 py-3 text-text-secondary hover:text-text-primary hover:bg-muted-surface/50 rounded-lg transition-colors text-base"
                             >
-                                <CloseIcon />
-                            </button>
-                        </div>
+                                {link.label}
+                            </a>
+                        ))}
+                        {/* Note: 'Let's Learn' button is inherently visible in the main navbar for sm breakpoint, so it is omitted from the drawer here */}
+                    </div>
+                </div>
+            </div>
 
-                        <div className="flex flex-col p-6 gap-1">
-                            {navLinks.map((link) => (
-                                <a
-                                    key={link.label}
-                                    href={link.href}
-                                    onClick={() => setMobileOpen(false)}
-                                    className="px-4 py-3 text-text-secondary hover:text-text-primary hover:bg-muted-surface/50 rounded-lg transition-colors text-base"
-                                >
-                                    {link.label}
-                                </a>
-                            ))}
+            {/* Core Mobile Sheet Overlay (< 640px) */}
+            <div
+                className={`sm:hidden fixed inset-0 z-[60] ${mobileOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                aria-hidden={!mobileOpen}
+            >
+                {/* Backdrop - High Z, Fixed, Solid */}
+                <div
+                    className={`fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300 ease-in-out ${mobileOpen ? 'opacity-100' : 'opacity-0'}`}
+                    onClick={() => setMobileOpen(false)}
+                />
 
-                            <div className="mt-4 pt-4 border-t border-border">
-                                <Link
-                                    href="/emulator"
-                                    onClick={() => setMobileOpen(false)}
-                                    className="flex items-center justify-center w-full px-5 py-3 bg-accent hover:bg-accent-hover text-white font-medium rounded-xl transition-all duration-200 glow-accent-hover"
-                                >
-                                    Let&apos;s Learn
-                                </Link>
-                            </div>
+                {/* Fixed Overlay Panel */}
+                <div
+                    className={`fixed right-0 top-0 h-[100vh] w-[300px] max-w-[calc(100vw-2rem)] bg-background border-l border-border shadow-2xl z-[70] transition-transform duration-300 ease-out transform ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                >
+                    <div className="flex items-center justify-between px-6 h-[72px] border-b border-border">
+                        <span className="text-text-primary font-semibold">Menu</span>
+                        <button
+                            onClick={() => setMobileOpen(false)}
+                            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+                            aria-label="Close menu"
+                        >
+                            <CloseIcon />
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col p-6 gap-1">
+                        {navLinks.map((link) => (
+                            <a
+                                key={link.label}
+                                href={link.href}
+                                onClick={() => setMobileOpen(false)}
+                                className="px-4 py-3 text-text-secondary hover:text-text-primary hover:bg-muted-surface/50 rounded-lg transition-colors text-base"
+                            >
+                                {link.label}
+                            </a>
+                        ))}
+
+                        <div className="mt-4 pt-4 border-t border-border">
+                            <Link
+                                href="/emulator"
+                                onClick={() => setMobileOpen(false)}
+                                className="flex items-center justify-center w-full px-5 py-3 bg-accent hover:bg-accent-hover text-white font-medium rounded-xl transition-all duration-200 glow-accent-hover"
+                            >
+                                Let&apos;s Learn
+                            </Link>
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
         </>
     );
 }
