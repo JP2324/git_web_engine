@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { cn, ScrollArea, Button, Sheet, SheetTrigger, SheetContent } from "./docs-ui";
-import { Menu, GitBranch } from "lucide-react";
+import { cn, ScrollArea } from "./docs-ui";
 
 const NAV_ITEMS = [
     { id: "init", title: "Initialize Repository", command: "git init" },
@@ -52,7 +51,6 @@ function SidebarNav({ className, activeId, onSelect }: SidebarNavProps) {
 
 export function DocsSidebar() {
     const [activeId, setActiveId] = React.useState("init");
-    const [sheetOpen, setSheetOpen] = React.useState(false);
 
     // Basic scrollspy 
     React.useEffect(() => {
@@ -86,30 +84,10 @@ export function DocsSidebar() {
             window.scrollTo({ top: offsetTop, behavior: "smooth" });
         }
         setActiveId(id);
-        setSheetOpen(false);
     };
 
     return (
         <>
-            {/* Tablet Sidebar Toggle (768px - 1023px) - completely hidden on mobile (<768) */}
-            <div className="hidden md:flex lg:hidden items-center p-0 mb-8 sticky top-[80px] z-30 w-full">
-                <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                    <SheetTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-full flex items-center justify-between border-border/40 bg-surface/60 backdrop-blur-md shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)]">
-                            <div className="flex items-center gap-2">
-                                <Menu className="h-4 w-4" />
-                                <span className="font-medium">Commands Menu</span>
-                            </div>
-                            <GitBranch className="h-4 w-4 opacity-50" />
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="w-[300px] p-0 border-r border-border bg-surface/95 backdrop-blur-xl shadow-2xl">
-                        <ScrollArea className="h-full py-8 px-4">
-                            <SidebarNav activeId={activeId} onSelect={scrollToSection} />
-                        </ScrollArea>
-                    </SheetContent>
-                </Sheet>
-            </div>
 
             {/* Desktop & Mid-Size Sidebar (1024px+) */}
             <aside className="hidden lg:block sticky top-[132px] w-[220px] xl:w-[260px] shrink-0 h-[calc(100vh-140px)] overflow-y-auto pb-10 z-20">
