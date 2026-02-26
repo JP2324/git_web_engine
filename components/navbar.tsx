@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 function GitLogo() {
     return (
@@ -57,14 +58,26 @@ function CloseIcon() {
     );
 }
 
-const navLinks = [
-    { label: "About", href: "#about" },
-    { label: "Features", href: "#features" },
-    { label: "Exercises", href: "#exercises" },
-    { label: "Docs", href: "#docs" },
+interface NavLink {
+    label: string;
+    href: string;
+    matchPrefix?: string;
+}
+
+const navLinks: NavLink[] = [
+    { label: "Home", href: "/" },
+    { label: "Docs", href: "/docs" },
+    { label: "Learn", href: "/learn/1", matchPrefix: "/learn" },
+    { label: "Playground", href: "/playground" },
 ];
 
+function isLinkActive(pathname: string, link: NavLink): boolean {
+    if (link.matchPrefix) return pathname.startsWith(link.matchPrefix);
+    return pathname === link.href;
+}
+
 export default function Navbar() {
+    const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -113,20 +126,23 @@ export default function Navbar() {
                         {/* Center - Nav Links (Desktop) */}
                         <div className="hidden md:flex items-center gap-1">
                             {navLinks.map((link) => (
-                                <a
+                                <Link
                                     key={link.label}
                                     href={link.href}
-                                    className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary transition-colors duration-200 rounded-lg hover:bg-muted-surface/50"
+                                    className={`px-4 py-2 text-sm transition-colors duration-200 rounded-lg ${isLinkActive(pathname, link)
+                                            ? "text-text-primary bg-muted-surface/60"
+                                            : "text-text-secondary hover:text-text-primary hover:bg-muted-surface/50"
+                                        }`}
                                 >
                                     {link.label}
-                                </a>
+                                </Link>
                             ))}
                         </div>
 
                         {/* Right - CTA + Mobile Toggle */}
                         <div className="flex items-center gap-3">
                             <Link
-                                href="/emulator"
+                                href="/learn/1"
                                 className="hidden sm:inline-flex items-center justify-center px-5 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-xl transition-all duration-200 glow-accent-hover"
                             >
                                 Let&apos;s Learn
@@ -173,16 +189,18 @@ export default function Navbar() {
 
                     <div className="flex flex-col p-6 gap-1">
                         {navLinks.map((link) => (
-                            <a
+                            <Link
                                 key={link.label}
                                 href={link.href}
                                 onClick={() => setMobileOpen(false)}
-                                className="px-4 py-3 text-text-secondary hover:text-text-primary hover:bg-muted-surface/50 rounded-lg transition-colors text-base"
+                                className={`px-4 py-3 rounded-lg transition-colors text-base ${isLinkActive(pathname, link)
+                                        ? "text-text-primary bg-muted-surface/60"
+                                        : "text-text-secondary hover:text-text-primary hover:bg-muted-surface/50"
+                                    }`}
                             >
                                 {link.label}
-                            </a>
+                            </Link>
                         ))}
-                        {/* Note: 'Let's Learn' button is inherently visible in the main navbar for sm breakpoint, so it is omitted from the drawer here */}
                     </div>
                 </div>
             </div>
@@ -215,19 +233,22 @@ export default function Navbar() {
 
                     <div className="flex flex-col p-6 gap-1">
                         {navLinks.map((link) => (
-                            <a
+                            <Link
                                 key={link.label}
                                 href={link.href}
                                 onClick={() => setMobileOpen(false)}
-                                className="px-4 py-3 text-text-secondary hover:text-text-primary hover:bg-muted-surface/50 rounded-lg transition-colors text-base"
+                                className={`px-4 py-3 rounded-lg transition-colors text-base ${isLinkActive(pathname, link)
+                                        ? "text-text-primary bg-muted-surface/60"
+                                        : "text-text-secondary hover:text-text-primary hover:bg-muted-surface/50"
+                                    }`}
                             >
                                 {link.label}
-                            </a>
+                            </Link>
                         ))}
 
                         <div className="mt-4 pt-4 border-t border-border">
                             <Link
-                                href="/emulator"
+                                href="/learn/1"
                                 onClick={() => setMobileOpen(false)}
                                 className="flex items-center justify-center w-full px-5 py-3 bg-accent hover:bg-accent-hover text-white font-medium rounded-xl transition-all duration-200 glow-accent-hover"
                             >

@@ -25,6 +25,9 @@ const config: Config = {
         "fade-in": "fadeIn 0.6s ease-out forwards",
         "fade-in-up": "fadeInUp 0.7s ease-out forwards",
         "slide-in": "slideIn 0.5s ease-out forwards",
+        "page-enter": "pageEnter 0.35s ease-out forwards",
+        "badge-pop": "badgePop 0.3s ease-out forwards",
+        "line-enter": "lineEnter 0.2s ease-out forwards",
       },
       keyframes: {
         fadeIn: {
@@ -38,6 +41,18 @@ const config: Config = {
         slideIn: {
           "0%": { opacity: "0", transform: "translateX(-16px)" },
           "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        pageEnter: {
+          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        badgePop: {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        lineEnter: {
+          "0%": { opacity: "0", transform: "translateY(2px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
     },
