@@ -378,15 +378,15 @@ export default function ExercisePage() {
                         /* Two-column grid — 420px left, flex right */
                         <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6 lg:h-[calc(100vh-160px)]">
                             {/* ───── LEFT COLUMN: Exercise Info ───── */}
-                            <div className="order-1 lg:order-1">
-                                <div className="rounded-2xl border border-border bg-surface/80 backdrop-blur-sm p-5 space-y-5 shadow-2xl shadow-black/10 transition-all duration-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:border-accent/20 lg:max-h-[calc(100vh-160px)] lg:overflow-y-auto no-scrollbar">
+                            <div className="order-1 lg:order-1 lg:h-full lg:min-h-0">
+                                <div className="rounded-2xl border border-border bg-surface/80 backdrop-blur-sm p-5 space-y-5 shadow-lg shadow-black/10 lg:h-full lg:overflow-y-auto no-scrollbar">
                                     {/* Exercise dropdown — top of card */}
                                     <div className="mb-3">
                                         <Select
                                             value={String(exerciseId)}
                                             onValueChange={handleExerciseSelect}
                                         >
-                                            <SelectTrigger className="w-full bg-muted-surface/50 border-border text-text-primary rounded-xl focus:ring-1 focus:ring-accent/50">
+                                            <SelectTrigger className="w-full bg-muted-surface/50 border-border text-text-primary rounded-xl">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent className="bg-surface border-border">
