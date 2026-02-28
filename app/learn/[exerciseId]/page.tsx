@@ -375,13 +375,13 @@ export default function ExercisePage() {
                             </div>
                         </div>
                     ) : (
-                        /* Two-column grid — 420px left, flex right */
-                        <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6 lg:h-[calc(100vh-160px)]">
+                        /* Two-column grid — equal width, stable */
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 lg:h-[calc(100vh-160px)] lg:items-stretch">
                             {/* ───── LEFT COLUMN: Exercise Info ───── */}
-                            <div className="order-1 lg:order-1 lg:h-full lg:min-h-0">
-                                <div className="rounded-2xl border border-border bg-surface/80 backdrop-blur-sm p-5 space-y-5 shadow-lg shadow-black/10 lg:h-full lg:overflow-y-auto no-scrollbar">
-                                    {/* Exercise dropdown — top of card */}
-                                    <div className="mb-3">
+                            <div className="order-1 lg:order-1 flex flex-col lg:h-full lg:min-h-0">
+                                <div className="rounded-2xl border border-border bg-surface/80 backdrop-blur-sm shadow-lg shadow-black/10 lg:h-full lg:min-h-0 flex flex-col overflow-hidden">
+                                    {/* Exercise dropdown — fixed at top, outside scroll area */}
+                                    <div className="relative p-5 pb-0 flex-shrink-0">
                                         <Select
                                             value={String(exerciseId)}
                                             onValueChange={handleExerciseSelect}
@@ -406,58 +406,61 @@ export default function ExercisePage() {
                                         </Select>
                                     </div>
 
-                                    {/* Title + success badge */}
-                                    <div className="space-y-3">
-                                        <h1 className="text-2xl lg:text-3xl font-bold text-text-primary leading-tight">
-                                            {config?.title}
-                                        </h1>
-                                        {isCompleted && (
-                                            <div className="inline-flex items-center gap-1.5 text-sm font-medium text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1.5 rounded-full animate-badge-pop">
-                                                ✅ Exercise Completed
+                                    {/* Scrollable content area */}
+                                    <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-5 no-scrollbar">
+                                        {/* Title + success badge */}
+                                        <div className="space-y-3">
+                                            <h1 className="text-2xl lg:text-3xl font-bold text-text-primary leading-tight">
+                                                {config?.title}
+                                            </h1>
+                                            {isCompleted && (
+                                                <div className="inline-flex items-center gap-1.5 text-sm font-medium text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1.5 rounded-full animate-badge-pop">
+                                                    ✅ Exercise Completed
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Step-by-step guide */}
+                                        {config?.steps && config.steps.length > 0 && (
+                                            <div className="rounded-xl bg-muted-surface/40 border-l-2 border-accent/60 p-4 space-y-2.5">
+                                                <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">
+                                                    Steps to Complete
+                                                </h3>
+                                                <ol className="list-decimal pl-5 space-y-2 text-sm text-text-secondary leading-relaxed">
+                                                    {config.steps.map((step, idx) => (
+                                                        <li key={idx}>{step}</li>
+                                                    ))}
+                                                </ol>
                                             </div>
                                         )}
-                                    </div>
 
-                                    {/* Step-by-step guide */}
-                                    {config?.steps && config.steps.length > 0 && (
-                                        <div className="rounded-xl bg-muted-surface/40 border-l-2 border-accent/60 p-4 space-y-2.5">
-                                            <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">
-                                                Steps to Complete
-                                            </h3>
-                                            <ol className="list-decimal pl-5 space-y-2 text-sm text-text-secondary leading-relaxed">
-                                                {config.steps.map((step, idx) => (
-                                                    <li key={idx}>{step}</li>
+                                        {/* Allowed commands */}
+                                        <div className="space-y-2">
+                                            <h2 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                                                Allowed Commands
+                                            </h2>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {config?.allowedCommands.map((cmd) => (
+                                                    <code
+                                                        key={cmd}
+                                                        className="text-xs bg-muted-surface text-accent px-2 py-1 rounded-md border border-border/60 font-mono"
+                                                    >
+                                                        {cmd}
+                                                    </code>
                                                 ))}
-                                            </ol>
+                                            </div>
                                         </div>
-                                    )}
 
-                                    {/* Allowed commands */}
-                                    <div className="space-y-2">
-                                        <h2 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                                            Allowed Commands
-                                        </h2>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {config?.allowedCommands.map((cmd) => (
-                                                <code
-                                                    key={cmd}
-                                                    className="text-xs bg-muted-surface text-accent px-2 py-1 rounded-md border border-border/60 font-mono"
-                                                >
-                                                    {cmd}
-                                                </code>
-                                            ))}
+                                        {/* Goal */}
+                                        <div className="space-y-1.5">
+                                            <h2 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                                                Goal
+                                            </h2>
+                                            <p className="text-sm text-text-secondary leading-relaxed">
+                                                Initialize a Git repository and make your first commit
+                                                with the files in your working directory.
+                                            </p>
                                         </div>
-                                    </div>
-
-                                    {/* Goal */}
-                                    <div className="space-y-1.5">
-                                        <h2 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                                            Goal
-                                        </h2>
-                                        <p className="text-sm text-text-secondary leading-relaxed">
-                                            Initialize a Git repository and make your first commit
-                                            with the files in your working directory.
-                                        </p>
                                     </div>
                                 </div>
                             </div>
