@@ -1,24 +1,25 @@
-import type { GitState } from "./types";
+import type { GitState } from "./engine/types";
 import type { Node, Edge } from "@xyflow/react";
 
 const NODE_SPACING_X = 160;
 const NODE_Y = 100;
 
-export function deriveGraphFromState(state: GitState): {
+export function deriveGraphFromState(gitState: GitState): {
     nodes: Node[];
     edges: Edge[];
 } {
-    if (!state.isInitialized || Object.keys(state.commits).length === 0) {
+    if (!gitState.isInitialized || gitState.commits.length === 0) {
         return { nodes: [], edges: [] };
     }
 
-    const commitIds = Object.keys(state.commits);
-    const sortedCommits = commitIds
-        .map((id) => state.commits[id])
-        .sort((a, b) => a.timestamp - b.timestamp);
+    // Sort commits by timestamp (oldest first for left-to-right layout)
+    const sortedCommits = [...gitState.commits].sort(
+        (a, b) => a.timestamp - b.timestamp
+    );
 
+    // Build branch pointer map: commitId → branch names
     const branchPointers: Record<string, string[]> = {};
-    for (const [branchName, commitId] of Object.entries(state.branches)) {
+    for (const [branchName, commitId] of Object.entries(gitState.branches)) {
         if (commitId !== null) {
             if (!branchPointers[commitId]) {
                 branchPointers[commitId] = [];
@@ -27,12 +28,9 @@ export function deriveGraphFromState(state: GitState): {
         }
     }
 
-    const isHEAD = (commitId: string): boolean => {
-        if (state.HEAD.type === "branch") {
-            return state.branches[state.HEAD.ref] === commitId;
-        }
-        return state.HEAD.ref === commitId;
-    };
+    // Determine which commit HEAD points to
+    const headCommitId = gitState.branches[gitState.currentBranch] ?? null;
+    const isHEAD = (commitId: string): boolean => commitId === headCommitId;
 
     const nodes: Node[] = sortedCommits.map((commit, index) => ({
         id: commit.id,

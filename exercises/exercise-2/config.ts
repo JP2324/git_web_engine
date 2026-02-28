@@ -5,12 +5,13 @@ const initialFileStructure: DirectoryNode = {
     children: {
         "index.js": { type: "file" },
         "app.js": { type: "file" },
+        "utils.js": { type: "file" },
     },
 };
 
-export const exercise1Config: ExerciseConfig = {
-    id: 1,
-    title: "Initialize and First Commit",
+export const exercise2Config: ExerciseConfig = {
+    id: 2,
+    title: "Multiple Commits",
     initialFileStructure,
     allowedCommands: [
         "ls",
@@ -32,15 +33,13 @@ export const exercise1Config: ExerciseConfig = {
         "Use ls to see files in your working directory.",
         "Run git init to initialize a new Git repository.",
         "Check git status to see untracked files.",
-        "Stage all files using git add .",
-        'Create your first commit with git commit -m "initial commit".',
-        "View your commit history with git log.",
+        "Stage some or all files using git add . or git add <file>.",
+        'Create your first commit with git commit -m "first commit".',
+        "Create new files with touch <filename> to have something new to stage.",
+        "Stage and commit again to build a linear history of at least 3 commits.",
     ],
-    goal: "Initialize a Git repository and make your first commit with the files in your working directory.",
+    goal: "Create multiple commits in a clean linear history. Initialize a repository, stage files, and commit at least 3 times to complete this exercise.",
     successCondition: (state: EngineState): boolean => {
-        return (
-            state.git.isInitialized === true &&
-            state.git.commits.length >= 1
-        );
+        return state.git.commits.length >= 3;
     },
 };

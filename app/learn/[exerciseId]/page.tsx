@@ -33,8 +33,10 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 
-import type { GitState, ExerciseConfig } from "@/lib/types";
-import { executeCommand } from "@/lib/gitEngine";
+import type { EngineState, ExerciseConfig, DirectoryNode, FSNode } from "@/lib/engine/types";
+import { createInitialFileSystem } from "@/lib/engine/fileSystem";
+import { createInitialGitState } from "@/lib/engine/gitState";
+import { dispatch } from "@/lib/engine/commandDispatcher";
 import { deriveGraphFromState } from "@/lib/graphDeriver";
 
 // ---------------------------------------------------------------------------
@@ -47,13 +49,19 @@ const exerciseRegistry: Record<number, () => Promise<ExerciseConfig>> = {
         );
         return exercise1Config;
     },
+    2: async () => {
+        const { exercise2Config } = await import(
+            "@/exercises/exercise-2/config"
+        );
+        return exercise2Config;
+    },
 };
 
 const TOTAL_EXERCISES = 10;
 
 const exerciseLabels: Record<number, string> = {
     1: "Initialize and First Commit",
-    2: "Branching Basics",
+    2: "Multiple Commits",
     3: "Merging Branches",
     4: "Handling Conflicts",
     5: "Rebasing",
@@ -65,7 +73,72 @@ const exerciseLabels: Record<number, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Custom commit node (same pattern as git-flow-example.tsx)
+// Build initial engine state from exercise config
+// ---------------------------------------------------------------------------
+function buildInitialState(config: ExerciseConfig): EngineState {
+    return {
+        fileSystem: createInitialFileSystem(config.initialFileStructure),
+        git: createInitialGitState(),
+    };
+}
+
+// ---------------------------------------------------------------------------
+// File tree component (view-only)
+// ---------------------------------------------------------------------------
+function FileTreeNode({
+    name,
+    node,
+    depth,
+}: {
+    name: string;
+    node: FSNode;
+    depth: number;
+}) {
+    if (node.type === "file") {
+        return (
+            <div
+                className="flex items-center gap-1.5 text-text-secondary text-xs font-mono"
+                style={{ paddingLeft: `${depth * 14}px` }}
+            >
+                <span className="text-text-secondary/50">📄</span>
+                <span>{name}</span>
+            </div>
+        );
+    }
+
+    // Directory
+    const dir = node as DirectoryNode;
+    const entries = Object.entries(dir.children);
+
+    // Sort: directories first, then files, alphabetically
+    const sorted = entries.sort(([aName, aNode], [bName, bNode]) => {
+        if (aNode.type === bNode.type) return aName.localeCompare(bName);
+        return aNode.type === "directory" ? -1 : 1;
+    });
+
+    return (
+        <div>
+            <div
+                className="flex items-center gap-1.5 text-text-secondary text-xs font-mono"
+                style={{ paddingLeft: `${depth * 14}px` }}
+            >
+                <span className="text-text-secondary/50">📁</span>
+                <span>{name}/</span>
+            </div>
+            {sorted.map(([childName, childNode]) => (
+                <FileTreeNode
+                    key={childName}
+                    name={childName}
+                    node={childNode}
+                    depth={depth + 1}
+                />
+            ))}
+        </div>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Custom commit node
 // ---------------------------------------------------------------------------
 function CommitNode({ data }: NodeProps) {
     const isActive = data.isActive as boolean;
@@ -224,10 +297,12 @@ export default function ExercisePage() {
     const exerciseId = Number(params.exerciseId);
 
     const [config, setConfig] = useState<ExerciseConfig | null>(null);
-    const [gitState, setGitState] = useState<GitState | null>(null);
+    const [engineState, setEngineState] = useState<EngineState | null>(null);
     const [history, setHistory] = useState<TerminalEntry[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isCompleted, setIsCompleted] = useState(false);
+    const [commandHistory, setCommandHistory] = useState<string[]>([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
 
     // Confirmation dialog state
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -241,23 +316,26 @@ export default function ExercisePage() {
 
     // ---- Load exercise config on route change ----
     useEffect(() => {
-
         const loadExercise = async () => {
             const loader = exerciseRegistry[exerciseId];
             if (!loader) {
                 setConfig(null);
-                setGitState(null);
+                setEngineState(null);
                 setHistory([]);
                 setIsCompleted(false);
+                setCommandHistory([]);
+                setHistoryIndex(-1);
                 return;
             }
 
             const exerciseConfig = await loader();
             setConfig(exerciseConfig);
-            setGitState(structuredClone(exerciseConfig.initialState));
+            setEngineState(buildInitialState(exerciseConfig));
             setHistory([]);
             setIsCompleted(false);
             setInputValue("");
+            setCommandHistory([]);
+            setHistoryIndex(-1);
             window.scrollTo({ top: 0, behavior: "smooth" });
         };
 
@@ -271,28 +349,72 @@ export default function ExercisePage() {
 
     // ---- Success detection ----
     useEffect(() => {
-        if (config && gitState && config.successCondition(gitState)) {
+        if (config && engineState && config.successCondition(engineState)) {
             setIsCompleted(true);
         }
-    }, [gitState, config]);
+    }, [engineState, config]);
 
     // ---- Derive graph from gitState ----
     const { nodes, edges } = useMemo<{ nodes: Node[]; edges: Edge[] }>(() => {
-        if (!gitState) return { nodes: [], edges: [] };
-        return deriveGraphFromState(gitState);
-    }, [gitState]);
+        if (!engineState) return { nodes: [], edges: [] };
+        return deriveGraphFromState(engineState.git);
+    }, [engineState]);
 
     // ---- Execute terminal command ----
     const handleExecute = useCallback(() => {
-        if (!gitState || !config) return;
+        if (!engineState || !config) return;
         const trimmed = inputValue.trim();
         if (trimmed.length === 0) return;
 
-        const result = executeCommand(gitState, trimmed, config.allowedCommands);
-        setGitState(result.newState);
-        setHistory((prev) => [...prev, { input: trimmed, output: result.output }]);
+        const result = dispatch(engineState, trimmed, config.allowedCommands);
+
+        setEngineState(result.state);
+
+        if (result.clearTerminal) {
+            setHistory([]);
+        } else {
+            setHistory((prev) => [...prev, { input: trimmed, output: result.output }]);
+        }
+
+        // Track command history for up/down arrow
+        setCommandHistory((prev) => [...prev, trimmed]);
+        setHistoryIndex(-1);
         setInputValue("");
-    }, [gitState, config, inputValue]);
+    }, [engineState, config, inputValue]);
+
+    // ---- Handle up/down arrow for command history ----
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent) => {
+            if (e.key === "Enter") {
+                handleExecute();
+                return;
+            }
+            if (e.key === "ArrowUp") {
+                e.preventDefault();
+                if (commandHistory.length === 0) return;
+                const newIndex =
+                    historyIndex === -1
+                        ? commandHistory.length - 1
+                        : Math.max(0, historyIndex - 1);
+                setHistoryIndex(newIndex);
+                setInputValue(commandHistory[newIndex]);
+                return;
+            }
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                if (historyIndex === -1) return;
+                if (historyIndex >= commandHistory.length - 1) {
+                    setHistoryIndex(-1);
+                    setInputValue("");
+                } else {
+                    const newIndex = historyIndex + 1;
+                    setHistoryIndex(newIndex);
+                    setInputValue(commandHistory[newIndex]);
+                }
+            }
+        },
+        [handleExecute, commandHistory, historyIndex]
+    );
 
     // ---- Dropdown logic ----
     const handleExerciseSelect = useCallback(
@@ -318,6 +440,13 @@ export default function ExercisePage() {
         setDialogOpen(false);
         setPendingExerciseId(null);
     }, []);
+
+    // ---- Terminal prompt path ----
+    const promptPath = useMemo(() => {
+        if (!engineState) return "~";
+        const cwd = engineState.fileSystem.cwd;
+        return cwd === "/root" ? "~" : "~" + cwd.replace("/root", "");
+    }, [engineState]);
 
     // ---- Not-implemented exercise placeholder ----
     const isImplemented = exerciseId in exerciseRegistry;
@@ -353,9 +482,9 @@ export default function ExercisePage() {
                 </DialogContent>
             </Dialog>
 
-            {/* Main content — same wrapper pattern as landing page */}
+            {/* Main content */}
             <main className="relative pt-28 pb-16 animate-page-enter">
-                {/* Background glow — matches hero section */}
+                {/* Background glow */}
                 <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px]" />
                     <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-accent/3 rounded-full blur-[100px]" />
@@ -375,12 +504,12 @@ export default function ExercisePage() {
                             </div>
                         </div>
                     ) : (
-                        /* Two-column grid — equal width, stable */
+                        /* Two-column grid */
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 lg:h-[calc(100vh-160px)] lg:items-stretch">
-                            {/* ───── LEFT COLUMN: Exercise Info ───── */}
+                            {/* ───── LEFT COLUMN: Exercise Info + File Structure ───── */}
                             <div className="order-1 lg:order-1 flex flex-col lg:h-full lg:min-h-0">
                                 <div className="rounded-2xl border border-border bg-surface/80 backdrop-blur-sm shadow-lg shadow-black/10 lg:h-full lg:min-h-0 flex flex-col overflow-hidden">
-                                    {/* Exercise dropdown — fixed at top, outside scroll area */}
+                                    {/* Exercise dropdown — fixed at top */}
                                     <div className="relative p-5 pb-0 flex-shrink-0">
                                         <Select
                                             value={String(exerciseId)}
@@ -406,7 +535,7 @@ export default function ExercisePage() {
                                         </Select>
                                     </div>
 
-                                    {/* Scrollable content area */}
+                                    {/* Section 1: Scrollable Exercise Info */}
                                     <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-5 no-scrollbar">
                                         {/* Title + success badge */}
                                         <div className="space-y-3">
@@ -457,9 +586,26 @@ export default function ExercisePage() {
                                                 Goal
                                             </h2>
                                             <p className="text-sm text-text-secondary leading-relaxed">
-                                                Initialize a Git repository and make your first commit
-                                                with the files in your working directory.
+                                                {config?.goal ?? "Complete the exercise by following the steps above."}
                                             </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Section 2: File Structure Reference (view-only) */}
+                                    <div className="flex-shrink-0 border-t border-border/60">
+                                        <div className="p-4 space-y-2">
+                                            <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                                                File Structure
+                                            </h3>
+                                            <div className="space-y-0.5 max-h-40 overflow-y-auto no-scrollbar">
+                                                {engineState && (
+                                                    <FileTreeNode
+                                                        name="root"
+                                                        node={engineState.fileSystem.root}
+                                                        depth={0}
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -509,7 +655,7 @@ export default function ExercisePage() {
                                         </ReactFlow>
                                     </ReactFlowProvider>
 
-                                    {/* Empty state — centered, improved contrast */}
+                                    {/* Empty state */}
                                     {nodes.length === 0 && (
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                             <p className="text-sm text-gray-400 font-mono text-center px-4">
@@ -545,11 +691,13 @@ export default function ExercisePage() {
                                             </div>
                                         )}
 
-                                        {/* History — each line animates in */}
+                                        {/* History */}
                                         {history.map((entry, idx) => (
                                             <div key={idx} className="space-y-1 animate-line-enter">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-accent select-none">$</span>
+                                                    <span className="text-accent select-none">
+                                                        {promptPath}$
+                                                    </span>
                                                     <span className="text-text-primary">
                                                         {entry.input}
                                                     </span>
@@ -564,17 +712,15 @@ export default function ExercisePage() {
 
                                         {/* Input line */}
                                         <div className="flex items-center gap-2">
-                                            <span className="text-accent select-none">$</span>
+                                            <span className="text-accent select-none">
+                                                {promptPath}$
+                                            </span>
                                             <input
                                                 ref={inputRef}
                                                 type="text"
                                                 value={inputValue}
                                                 onChange={(e) => setInputValue(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter") {
-                                                        handleExecute();
-                                                    }
-                                                }}
+                                                onKeyDown={handleKeyDown}
                                                 className="flex-1 bg-transparent text-text-primary outline-none font-mono text-sm caret-accent"
                                                 spellCheck={false}
                                                 autoComplete="off"
