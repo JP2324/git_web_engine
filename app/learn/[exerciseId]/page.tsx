@@ -458,7 +458,7 @@ export default function ExercisePage() {
     const isImplemented = exerciseId in exerciseRegistry;
 
     return (
-        <div className="min-h-screen bg-background overflow-x-hidden">
+        <div className="min-h-screen lg:h-screen bg-background flex flex-col overflow-x-hidden lg:overflow-hidden">
             <Navbar />
 
             {/* Confirmation dialog */}
@@ -489,14 +489,14 @@ export default function ExercisePage() {
             </Dialog>
 
             {/* Main content */}
-            <main className="relative pt-28 pb-16 animate-page-enter">
+            <main className="relative flex-1 flex flex-col pt-28 pb-6 animate-page-enter lg:overflow-hidden">
                 {/* Background glow */}
                 <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px]" />
                     <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-accent/3 rounded-full blur-[100px]" />
                 </div>
 
-                <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                <div className="relative w-full px-4 sm:px-6 lg:px-8 flex-1 flex flex-col lg:overflow-hidden">
                     {!isImplemented ? (
                         /* Placeholder for unimplemented exercises */
                         <div className="flex items-center justify-center h-[60vh]">
@@ -511,9 +511,9 @@ export default function ExercisePage() {
                         </div>
                     ) : (
                         /* Two-column grid */
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 lg:h-[calc(100vh-160px)] lg:items-stretch">
+                        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-6 lg:gap-8 flex-1 lg:min-h-0 lg:overflow-hidden">
                             {/* ───── LEFT COLUMN: Exercise Info + File Structure ───── */}
-                            <div className="order-1 lg:order-1 flex flex-col lg:h-full lg:min-h-0">
+                            <div className="order-1 flex flex-col lg:min-h-0 lg:overflow-hidden">
                                 <div className="rounded-2xl border border-border bg-surface/80 backdrop-blur-sm shadow-lg shadow-black/10 lg:h-full lg:min-h-0 flex flex-col overflow-hidden">
                                     {/* Exercise dropdown — fixed at top */}
                                     <div className="relative p-5 pb-0 flex-shrink-0">
@@ -618,13 +618,13 @@ export default function ExercisePage() {
                             </div>
 
                             {/* ───── RIGHT COLUMN: Graph + Terminal ───── */}
-                            <div className="flex flex-col gap-4 order-2 lg:order-2 lg:h-full lg:min-h-0">
+                            <div className="flex flex-col gap-4 order-2 lg:min-h-0 lg:overflow-hidden">
                                 {/* React Flow container */}
                                 <div
                                     ref={flowWrapperRef}
                                     className={[
                                         "w-full rounded-2xl border border-border bg-surface/50 overflow-hidden shadow-[inset_0_2px_20px_rgba(0,0,0,0.15)] relative transition-opacity duration-300",
-                                        "h-[280px] sm:h-[320px] lg:flex-1 lg:min-h-0",
+                                        "h-[280px] sm:h-[320px] lg:flex-1 lg:min-h-0 lg:overflow-hidden",
                                         nodes.length > 0 ? "opacity-100" : "opacity-100",
                                     ].join(" ")}
                                 >
@@ -672,7 +672,7 @@ export default function ExercisePage() {
                                 </div>
 
                                 {/* Terminal */}
-                                <div className="rounded-2xl border border-border bg-[#0d1117] overflow-hidden shadow-[inset_0_1px_12px_rgba(0,0,0,0.2)] lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
+                                <div className="rounded-2xl border border-border bg-[#0d1117] overflow-hidden shadow-[inset_0_1px_12px_rgba(0,0,0,0.2)] lg:flex-1 lg:min-h-0 flex flex-col">
                                     <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-surface/40">
                                         <div className="flex gap-1.5">
                                             <span className="w-3 h-3 rounded-full bg-[#ff5f56]" />
@@ -685,7 +685,7 @@ export default function ExercisePage() {
                                     </div>
 
                                     <div
-                                        className="h-[260px] sm:h-[300px] lg:h-auto lg:flex-1 overflow-y-auto p-4 font-mono text-sm space-y-3 no-scrollbar"
+                                        className="h-[260px] sm:h-[300px] lg:h-auto lg:flex-1 lg:min-h-0 overflow-y-auto p-4 font-mono text-sm space-y-3 no-scrollbar"
                                         onClick={() => inputRef.current?.focus()}
                                     >
                                         {/* Welcome message */}
