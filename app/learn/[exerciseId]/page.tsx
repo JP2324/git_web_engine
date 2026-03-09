@@ -61,6 +61,12 @@ const exerciseRegistry: Record<number, () => Promise<ExerciseConfig>> = {
         );
         return exercise3Config;
     },
+    4: async () => {
+        const { exercise4Config } = await import(
+            "@/exercises/exercise-4/config"
+        );
+        return exercise4Config;
+    },
 };
 
 const TOTAL_EXERCISES = 10;
@@ -69,7 +75,7 @@ const exerciseLabels: Record<number, string> = {
     1: "Initialize and First Commit",
     2: "Multiple Commits",
     3: "Branch Creation",
-    4: "Handling Conflicts",
+    4: "Switching Branches",
     5: "Rebasing",
     6: "Detached HEAD",
     7: "Cherry Pick",

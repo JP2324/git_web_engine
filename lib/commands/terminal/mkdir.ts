@@ -14,6 +14,18 @@ const mkdir: CommandHandler = (state, args): CommandResult => {
         return { state, output: `mkdir: cannot create directory '${dirName}': File exists` };
     }
 
+    // Validate parent
+    const parts = resolved.split("/").filter(Boolean);
+    const parentPath = "/" + parts.slice(0, -1).join("/");
+    const parentNode = getNode(state.fileSystem, parentPath);
+
+    if (!parentNode) {
+        return { state, output: `mkdir: cannot create directory '${dirName}': No such file or directory` };
+    }
+    if (parentNode.type !== "directory") {
+        return { state, output: `mkdir: cannot create directory '${dirName}': Not a directory` };
+    }
+
     const newFS = addDirectory(state.fileSystem, resolved);
 
     return {

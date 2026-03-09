@@ -2,7 +2,7 @@ import type { GitState } from "./engine/types";
 import type { Node, Edge } from "@xyflow/react";
 
 const NODE_SPACING_X = 160;
-const NODE_Y = 100;
+const LANE_SPACING_Y = 120;
 
 export function deriveGraphFromState(gitState: GitState): {
     nodes: Node[];
@@ -32,12 +32,37 @@ export function deriveGraphFromState(gitState: GitState): {
     const headCommitId = gitState.branches[gitState.currentBranch] ?? null;
     const isHEAD = (commitId: string): boolean => commitId === headCommitId;
 
-    const nodes: Node[] = sortedCommits.map((commit, index) => ({
+    const depths: Record<string, number> = {};
+    const lanes: Record<string, number> = {};
+    const parentChildrenCount: Record<string, number> = {};
+    let nextAvailableLane = 0;
+
+    for (const commit of sortedCommits) {
+        if (commit.parents.length === 0) {
+            depths[commit.id] = 0;
+            lanes[commit.id] = nextAvailableLane;
+            nextAvailableLane++;
+        } else {
+            const parentId = commit.parents[0];
+            depths[commit.id] = (depths[parentId] ?? 0) + 1;
+
+            parentChildrenCount[parentId] = (parentChildrenCount[parentId] ?? 0) + 1;
+
+            if (parentChildrenCount[parentId] === 1) {
+                lanes[commit.id] = lanes[parentId] ?? 0;
+            } else {
+                lanes[commit.id] = nextAvailableLane;
+                nextAvailableLane++;
+            }
+        }
+    }
+
+    const nodes: Node[] = sortedCommits.map((commit) => ({
         id: commit.id,
         type: "commit",
         position: {
-            x: index * NODE_SPACING_X,
-            y: NODE_Y,
+            x: (depths[commit.id] ?? 0) * NODE_SPACING_X,
+            y: (lanes[commit.id] ?? 0) * LANE_SPACING_Y,
         },
         data: {
             label: commit.id,

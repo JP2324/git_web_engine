@@ -13,23 +13,22 @@ const gitStatus: CommandHandler = (state, _args): CommandResult => {
     const branch = state.git.currentBranch;
     const lines: string[] = [`On branch ${branch}`, ""];
 
-    // Get all file paths in the file system
     const allFiles = getAllFilePaths(state.fileSystem.root, "/root");
 
     const staged: string[] = [];
     const untracked: string[] = [];
 
+    // Check all files in the current working directory
     for (const fp of allFiles) {
-        const status = getFileStatus(state.git, fp);
-        if (status === "staged") {
+        if (state.git.stagedFiles.has(fp)) {
             staged.push(fp);
-        } else if (status === "untracked") {
+        } else if (!state.git.trackedFiles.has(fp)) {
             untracked.push(fp);
         }
-        // tracked_clean files are not shown
+        // If tracked and not staged, do not show
     }
 
-    // Also check staged files that might not be in the file system anymore
+    // Also check staged files that might not be in the file system anymore (deleted)
     for (const fp of state.git.stagedFiles) {
         if (!staged.includes(fp)) {
             staged.push(fp);

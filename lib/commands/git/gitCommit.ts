@@ -1,4 +1,5 @@
 import type { CommandHandler, CommandResult, Commit } from "../../engine/types";
+import { getAllFilePaths } from "../../engine/fileSystem";
 
 const NOT_A_REPO =
     "fatal: not a git repository (or any of the parent directories): .git";
@@ -42,7 +43,7 @@ const gitCommit: CommandHandler = (state, args): CommandResult => {
         message,
         parents,
         timestamp: Date.now(),
-        snapshot: Array.from(newTracked),
+        snapshot: getAllFilePaths(state.fileSystem.root, "/root"),
     };
 
     const fileCount = state.git.stagedFiles.size;

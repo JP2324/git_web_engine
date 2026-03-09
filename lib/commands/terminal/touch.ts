@@ -15,6 +15,18 @@ const touch: CommandHandler = (state, args): CommandResult => {
         return { state, output: "" };
     }
 
+    // Validate parent
+    const parts = resolved.split("/").filter(Boolean);
+    const parentPath = "/" + parts.slice(0, -1).join("/");
+    const parentNode = getNode(state.fileSystem, parentPath);
+
+    if (!parentNode) {
+        return { state, output: `touch: cannot touch '${fileName}': No such file or directory` };
+    }
+    if (parentNode.type !== "directory") {
+        return { state, output: `touch: cannot touch '${fileName}': Not a directory` };
+    }
+
     const newFS = addFile(state.fileSystem, resolved);
 
     return {

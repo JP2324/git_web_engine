@@ -18,6 +18,7 @@ import gitCommit from "../commands/git/gitCommit";
 import gitStatus from "../commands/git/gitStatus";
 import gitLog from "../commands/git/gitLog";
 import gitBranch from "../commands/git/gitBranch";
+import gitCheckout from "../commands/git/gitCheckout";
 
 // ---------------------------------------------------------------------------
 // Command registry — maps command name → handler
@@ -38,6 +39,7 @@ const COMMAND_REGISTRY: Record<string, CommandHandler> = {
     "git status": gitStatus,
     "git log": gitLog,
     "git branch": gitBranch,
+    "git checkout": gitCheckout,
 };
 
 // Known git subcommands for distinguishing "not allowed" vs "unknown"
