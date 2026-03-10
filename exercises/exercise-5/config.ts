@@ -32,13 +32,13 @@ export const exercise5Config: ExerciseConfig = {
         "git merge",
     ],
     steps: [
-        "Initialize a repository using git init.",
-        "Stage all files and create the first commit on main.",
-        "Create a new branch named feature using git branch feature.",
-        "Switch to the feature branch using git checkout feature.",
-        "Modify a file, stage it, and create another commit on feature.",
-        "Switch back to main using git checkout main.",
-        "Merge the feature branch into main using git merge feature. Watch the graph perform a fast-forward merge!",
+        "Type `git init` to initialize a new Git repository.",
+        "Type `git add .` to stage all files, then type `git commit -m \"initial commit\"` to create the first commit on main. This is the base that both branches will share.",
+        "Type `git branch feature` to create the feature branch. At this point both main and feature point to the same commit — you can see both labels on one node in the graph.",
+        "Type `git checkout feature` to switch to the feature branch. You are now working on feature and any commits you make will only advance this branch.",
+        "Type `touch newfeature.js` to create a new file, then `git add .` and `git commit -m \"add feature\"`. Notice in the graph that feature has moved forward but main has stayed on the original commit.",
+        "Type `git checkout main` to switch back to main. Notice newfeature.js disappears from the file tree — it only exists on the feature branch so far.",
+        "Type `git merge feature` to merge the feature branch into main. Because main never moved after branching, Git does not need to create a new merge commit — it simply moves the main pointer forward to where feature already is. This is a fast-forward. Watch both branch labels land on the same commit node in the graph and newfeature.js reappear in the file tree."
     ],
     goal: "Learn how to perform a fast-forward merge. Because main did not diverge from feature, Git just moves the main pointer forward to join feature, without a new merge commit.",
     successCondition: (state: EngineState): boolean => {

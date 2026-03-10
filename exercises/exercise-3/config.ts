@@ -31,11 +31,11 @@ export const exercise3Config: ExerciseConfig = {
         "git branch",
     ],
     steps: [
-        "Initialize a repository using git init.",
-        "Stage and commit the files.",
-        "Create a branch named feature using git branch feature.",
-        "Create another branch named dev using git branch dev.",
-        "Verify the branches using git branch.",
+        "Type `git init` to initialize a new Git repository.",
+        "Type `git add .` to stage all files, then type `git commit -m \"initial commit\"` to create your first commit. You cannot create branches without at least one commit.",
+        "Type `git branch feature` to create a new branch called feature. This creates a new pointer at the current commit — it does not switch to it yet.",
+        "Type `git branch dev` to create a second branch called dev. Again, this only creates the pointer.",
+        "Type `git branch` to list all branches in the repository. You should see main, feature, and dev listed. The asterisk (*) next to main shows that is your current branch. Notice both new branch labels appear on the same commit node in the graph."
     ],
     goal: "Learn how to create and list branches. Create both a 'feature' and a 'dev' branch to complete this exercise.",
     successCondition: (state: EngineState): boolean => {
