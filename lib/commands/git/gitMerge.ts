@@ -44,9 +44,83 @@ const gitMerge: CommandHandler = (state, args): CommandResult => {
 
         // Check if current is an ancestor of target (fast-forward)
         if (!isAncestor(state.git.commits, currentCommitId, targetCommitId)) {
+            // --- Three-Way Merge ---
+            const targetCommit = state.git.commits.find((c) => c.id === targetCommitId);
+            const currentCommit = state.git.commits.find((c) => c.id === currentCommitId);
+
+            if (!targetCommit || !currentCommit) {
+                return { state, output: "error: unable to find target or current commit" };
+            }
+
+            const newCounter = state.git.commitCounter + 1;
+            const newCommitId = `C${newCounter}`;
+
+            // Rebuild file system combining both snapshots + untracked files
+            const newRoot: DirectoryNode = { type: "directory", children: {} };
+
+            // Determine untracked files
+            const allCurrentFiles = getAllFilePaths(state.fileSystem.root, "/root");
+            const untrackedFiles = allCurrentFiles.filter(
+                (fp) => !state.git.trackedFiles.has(fp)
+            );
+
+            // Rebuild snapshot
+            const filesToRestore = new Set([...currentCommit.snapshot, ...targetCommit.snapshot, ...untrackedFiles]);
+
+            for (const filePath of filesToRestore) {
+                const parts = filePath.split("/").filter(Boolean);
+                if (parts.length === 0 || parts[0] !== "root") continue;
+
+                let current = newRoot;
+                for (let i = 1; i < parts.length - 1; i++) {
+                    const dirName = parts[i];
+                    if (!current.children[dirName]) {
+                        current.children[dirName] = { type: "directory", children: {} };
+                    }
+                    current = current.children[dirName] as DirectoryNode;
+                }
+
+                const fileName = parts[parts.length - 1];
+                if (fileName) {
+                    current.children[fileName] = { type: "file" };
+                }
+            }
+
+            const restoredFileSystem = {
+                ...state.fileSystem,
+                root: newRoot,
+            };
+
+            const newTracked = new Set(filesToRestore);
+            for (const fp of untrackedFiles) {
+                newTracked.delete(fp); // Only track the snapshot files, not untracked
+            }
+
+            const newCommit: Commit = {
+                id: newCommitId,
+                message: `Merge branch '${targetBranch}' into ${currentBranch}`,
+                parents: [currentCommitId, targetCommitId],
+                timestamp: Date.now(),
+                snapshot: Array.from(newTracked),
+            };
+
             return {
-                state,
-                output: "error: three-way merge not supported yet. Try Exercise 6!",
+                state: {
+                    ...state,
+                    fileSystem: restoredFileSystem,
+                    git: {
+                        ...state.git,
+                        commits: [...state.git.commits, newCommit],
+                        branches: {
+                            ...state.git.branches,
+                            [currentBranch]: newCommitId,
+                        },
+                        stagedFiles: new Set<string>(), // clear staging area on merge like commit does
+                        trackedFiles: newTracked,
+                        commitCounter: newCounter,
+                    },
+                },
+                output: `Merge branch '${targetBranch}' into ${currentBranch}\nMerge commit: ${newCommitId}\nParents: ${currentCommitId}, ${targetCommitId}`,
             };
         }
     }

@@ -73,6 +73,12 @@ const exerciseRegistry: Record<number, () => Promise<ExerciseConfig>> = {
         );
         return exercise5Config;
     },
+    6: async () => {
+        const { exercise6Config } = await import(
+            "@/exercises/exercise-6/config"
+        );
+        return exercise6Config;
+    },
 };
 
 const TOTAL_EXERCISES = 10;
@@ -83,7 +89,7 @@ const exerciseLabels: Record<number, string> = {
     3: "Branch Creation",
     4: "Switching Branches",
     5: "Fast-Forward Merge",
-    6: "Detached HEAD",
+    6: "Three-Way Merge",
     7: "Cherry Pick",
     8: "Interactive Rebase",
     9: "Stashing Changes",
