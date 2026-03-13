@@ -12,10 +12,41 @@ export function deriveGraphFromState(gitState: GitState): {
         return { nodes: [], edges: [] };
     }
 
-    // Sort commits by timestamp (oldest first for left-to-right layout)
-    const sortedCommits = [...gitState.commits].sort(
-        (a, b) => a.timestamp - b.timestamp
-    );
+    // Calculate reachable set first
+    const commitMap = new Map<string, typeof gitState.commits[0]>();
+    for (const c of gitState.commits) {
+        commitMap.set(c.id, c);
+    }
+
+    const reachableSet = new Set<string>();
+    const queue: string[] = [];
+
+    // Start from all branch pointers
+    for (const [_, commitId] of Object.entries(gitState.branches)) {
+        if (commitId !== null) {
+            queue.push(commitId);
+        }
+    }
+
+    while (queue.length > 0) {
+        const currentId = queue.shift()!;
+        if (!reachableSet.has(currentId)) {
+            reachableSet.add(currentId);
+            const commit = commitMap.get(currentId);
+            if (commit) {
+                for (const parentId of commit.parents) {
+                    if (!reachableSet.has(parentId)) {
+                        queue.push(parentId);
+                    }
+                }
+            }
+        }
+    }
+
+    // Filter to reachable commits and sort by timestamp (oldest first for left-to-right layout)
+    const sortedCommits = gitState.commits
+        .filter((c) => reachableSet.has(c.id))
+        .sort((a, b) => a.timestamp - b.timestamp);
 
     // Build branch pointer map: commitId → branch names
     const branchPointers: Record<string, string[]> = {};
