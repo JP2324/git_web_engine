@@ -21,6 +21,7 @@ import gitBranch from "../commands/git/gitBranch";
 import gitCheckout from "../commands/git/gitCheckout";
 import gitMerge from "../commands/git/gitMerge";
 import gitReset from "../commands/git/gitReset";
+import gitRevert from "../commands/git/gitRevert";
 
 // ---------------------------------------------------------------------------
 // Command registry — maps command name → handler
@@ -44,12 +45,13 @@ const COMMAND_REGISTRY: Record<string, CommandHandler> = {
     "git checkout": gitCheckout,
     "git merge": gitMerge,
     "git reset": gitReset,
+    "git revert": gitRevert,
 };
 
 // Known git subcommands for distinguishing "not allowed" vs "unknown"
 const KNOWN_GIT_SUBCOMMANDS = [
     "init", "add", "commit", "status", "log",
-    "branch", "checkout", "rebase", "reset",
+    "branch", "checkout", "rebase", "reset", "revert",
     "stash", "cherry-pick", "tag", "switch", "diff",
     "push", "pull", "fetch", "clone", "remote",
 ];
