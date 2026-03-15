@@ -22,6 +22,7 @@ import gitCheckout from "../commands/git/gitCheckout";
 import gitMerge from "../commands/git/gitMerge";
 import gitReset from "../commands/git/gitReset";
 import gitRevert from "../commands/git/gitRevert";
+import gitRebase from "../commands/git/gitRebase";
 
 // ---------------------------------------------------------------------------
 // Command registry — maps command name → handler
@@ -46,6 +47,7 @@ const COMMAND_REGISTRY: Record<string, CommandHandler> = {
     "git merge": gitMerge,
     "git reset": gitReset,
     "git revert": gitRevert,
+    "git rebase": gitRebase,
 };
 
 // Known git subcommands for distinguishing "not allowed" vs "unknown"
