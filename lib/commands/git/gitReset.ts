@@ -36,7 +36,7 @@ const gitReset: CommandHandler = (state, args): CommandResult => {
     }
 
     const stepsToMove = parseInt(match[1] || "0", 10);
-    
+
     // Walk back the parent chain
     const tipCommit = state.git.commits.find((c) => c.id === currentTipId);
     if (!tipCommit) {
@@ -52,7 +52,7 @@ const gitReset: CommandHandler = (state, args): CommandResult => {
             break;
         }
         // Always take the first parent for simplicity in this linear-focused exercise
-        const parentId = targetCommit.parents[0];
+        const parentId: string | undefined = targetCommit.parents[0];
         targetCommit = state.git.commits.find((c) => c.id === parentId);
         currentStep++;
     }

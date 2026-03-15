@@ -55,17 +55,17 @@ const gitMerge: CommandHandler = (state, args): CommandResult => {
             const newCounter = state.git.commitCounter + 1;
             const newCommitId = `C${newCounter}`;
 
-            // Rebuild file system combining both snapshots + untracked files
-            const newRoot: DirectoryNode = { type: "directory", children: {} };
+            const mergedSnapshotItems = new Set([...currentCommit.snapshot, ...targetCommit.snapshot]);
+            const mergedSnapshot = Array.from(mergedSnapshotItems);
 
-            // Determine untracked files
             const allCurrentFiles = getAllFilePaths(state.fileSystem.root, "/root");
             const untrackedFiles = allCurrentFiles.filter(
                 (fp) => !state.git.trackedFiles.has(fp)
             );
 
-            // Rebuild snapshot
-            const filesToRestore = new Set([...currentCommit.snapshot, ...targetCommit.snapshot, ...untrackedFiles]);
+            const newRoot: DirectoryNode = { type: "directory", children: {} };
+
+            const filesToRestore = new Set([...mergedSnapshot, ...untrackedFiles]);
 
             for (const filePath of filesToRestore) {
                 const parts = filePath.split("/").filter(Boolean);
@@ -91,17 +91,12 @@ const gitMerge: CommandHandler = (state, args): CommandResult => {
                 root: newRoot,
             };
 
-            const newTracked = new Set(filesToRestore);
-            for (const fp of untrackedFiles) {
-                newTracked.delete(fp); // Only track the snapshot files, not untracked
-            }
-
             const newCommit: Commit = {
                 id: newCommitId,
                 message: `Merge branch '${targetBranch}' into ${currentBranch}`,
                 parents: [currentCommitId, targetCommitId],
                 timestamp: Date.now(),
-                snapshot: Array.from(newTracked),
+                snapshot: mergedSnapshot,
             };
 
             return {
@@ -116,7 +111,7 @@ const gitMerge: CommandHandler = (state, args): CommandResult => {
                             [currentBranch]: newCommitId,
                         },
                         stagedFiles: new Set<string>(), // clear staging area on merge like commit does
-                        trackedFiles: newTracked,
+                        trackedFiles: new Set<string>(mergedSnapshot),
                         commitCounter: newCounter,
                     },
                 },
@@ -130,18 +125,19 @@ const gitMerge: CommandHandler = (state, args): CommandResult => {
     // 1. Update file system (like checkout)
     const targetCommit = state.git.commits.find((c) => c.id === targetCommitId);
     let restoredFileSystem = state.fileSystem;
+    let newTrackedFiles = state.git.trackedFiles;
 
     if (targetCommit) {
-        const newRoot: DirectoryNode = { type: "directory", children: {} };
+        const targetSnapshot = targetCommit.snapshot;
 
-        // Determine untracked files
         const allCurrentFiles = getAllFilePaths(state.fileSystem.root, "/root");
         const untrackedFiles = allCurrentFiles.filter(
             (fp) => !state.git.trackedFiles.has(fp)
         );
 
-        // Rebuild snapshot
-        const filesToRestore = new Set([...targetCommit.snapshot, ...untrackedFiles]);
+        const newRoot: DirectoryNode = { type: "directory", children: {} };
+
+        const filesToRestore = new Set([...targetSnapshot, ...untrackedFiles]);
 
         for (const filePath of filesToRestore) {
             const parts = filePath.split("/").filter(Boolean);
@@ -166,6 +162,7 @@ const gitMerge: CommandHandler = (state, args): CommandResult => {
             ...state.fileSystem,
             root: newRoot,
         };
+        newTrackedFiles = new Set<string>(targetSnapshot);
     }
 
     // 2. Update branches
@@ -180,6 +177,7 @@ const gitMerge: CommandHandler = (state, args): CommandResult => {
                     [currentBranch]: targetCommitId,
                 },
                 stagedFiles: new Set<string>(), // clear staging area on merge like checkout does
+                trackedFiles: newTrackedFiles,
             },
         },
         output: `Updating ${currentCommitId?.substring(0, 7) || "HEAD"}..${targetCommitId.substring(0, 7)}\nFast-forward`,
