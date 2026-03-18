@@ -12,12 +12,22 @@ import {
   Clock, 
   RotateCcw 
 } from "lucide-react";
-import type { EngineState } from "@/lib/engine/types";
+import type { EngineState, FSNode, DirectoryNode } from "@/lib/engine/types";
 import { createInitialFileSystem } from "@/lib/engine/fileSystem";
 import { createInitialGitState } from "@/lib/engine/gitState";
 import { dispatch } from "@/lib/engine/commandDispatcher";
 import { deriveGraphFromState } from "@/lib/graphDeriver";
-import { ReactFlowProvider, ReactFlow, Background, Controls } from "@xyflow/react";
+import { 
+  ReactFlowProvider, 
+  ReactFlow, 
+  Controls, 
+  useReactFlow,
+  Handle,
+  Position,
+  BaseEdge,
+  getSmoothStepPath
+} from "@xyflow/react";
+import type { Node, NodeProps, EdgeProps } from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
 
 function EmptyGraphIcon() {
@@ -28,6 +38,165 @@ function EmptyGraphIcon() {
       <path d="M16 13.5V18.5" stroke="#1f2330" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
+}
+
+function PlaygroundFileTreeNode({ name, node, depth = 0 }: { name: string; node: FSNode; depth?: number }) {
+  const [isOpen, setIsOpen] = useState(true);
+
+  if (node.type === "file") {
+    return (
+      <div 
+        className="flex items-center gap-1.5 text-xs font-mono py-0.5 text-[#555a6e]"
+        style={{ paddingLeft: `${(depth + 1) * 16}px` }}
+      >
+        <FileText size={14} className="shrink-0" />
+        <span>{name}</span>
+      </div>
+    );
+  }
+
+  const dir = node as DirectoryNode;
+  const entries = Object.entries(dir.children);
+  const sorted = entries.sort(([aName, aNode], [bName, bNode]) => {
+    if (aNode.type === bNode.type) return aName.localeCompare(bName);
+    return aNode.type === "directory" ? -1 : 1;
+  });
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div 
+        className="flex items-center gap-1.5 text-xs font-mono py-0.5 text-[#8b90a0] cursor-pointer"
+        style={{ paddingLeft: `${(depth + 1) * 16}px` }}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {isOpen ? <ChevronDown size={14} className="shrink-0" /> : <ChevronRight size={14} className="shrink-0" />}
+        <Folder size={14} className="shrink-0 text-[#e8eaf0] fill-[#e8eaf0]/20" />
+        <span className="select-none">{name}/</span>
+      </div>
+      {isOpen && (
+        <div className="flex flex-col gap-0.5">
+          {sorted.map(([childName, childNode]) => (
+            <PlaygroundFileTreeNode
+              key={childName}
+              name={childName}
+              node={childNode}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CommitNode({ data }: NodeProps) {
+    const isActive = data.isActive as boolean;
+    const branches = data.branches as string[] | undefined;
+    const message = data.message as string | undefined;
+
+    return (
+        <div
+            className={[
+                "relative flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full border-2 text-xs md:text-sm font-mono shadow-sm transition-all duration-500",
+                isActive
+                    ? "border-accent bg-gradient-to-br from-accent to-accent-hover text-white shadow-[0_0_20px_rgba(240,80,50,0.5)] z-10 scale-[1.03]"
+                    : "border-border/60 bg-surface/80 backdrop-blur-sm text-text-primary z-0 hover:border-border hover:bg-surface",
+            ].join(" ")}
+        >
+            <Handle
+                type="target"
+                position={Position.Left}
+                className="!w-1 !h-1 !opacity-0 !border-none !bg-transparent"
+            />
+            <span>{data.label as string}</span>
+            <Handle
+                type="source"
+                position={Position.Right}
+                className="!w-1 !h-1 !opacity-0 !border-none !bg-transparent"
+            />
+
+            {branches && branches.length > 0 && (
+                <div className="absolute bottom-[calc(100%+12px)] left-1/2 -translate-x-1/2 flex flex-col-reverse items-center gap-1.5 pointer-events-none z-50">
+                    {branches.map((branch: string) => (
+                        <span
+                            key={branch}
+                            className={[
+                                "text-[11px] px-2.5 py-0.5 rounded-full whitespace-nowrap border shadow-xl transition-all duration-300 font-sans",
+                                isActive
+                                    ? "bg-accent/15 text-accent border-accent/40 shadow-[0_0_10px_rgba(240,80,50,0.15)]"
+                                    : "border-border/60 bg-surface/90 backdrop-blur-sm text-text-secondary",
+                            ].join(" ")}
+                        >
+                            {branch}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            {message && (
+                <div className="absolute -bottom-10 text-xs font-medium text-text-primary whitespace-nowrap pointer-events-none font-sans z-30">
+                    {message}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function GitEdge({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourcePosition,
+    targetPosition,
+    style = {},
+    markerEnd,
+    data,
+}: EdgeProps) {
+    const [edgePath] = getSmoothStepPath({
+        sourceX,
+        sourceY,
+        sourcePosition,
+        targetX,
+        targetY,
+        targetPosition,
+        borderRadius: 16,
+    });
+
+    const isActive = data?.isActive as boolean;
+
+    return (
+        <BaseEdge
+            path={edgePath}
+            markerEnd={markerEnd}
+            style={{
+                ...style,
+                strokeWidth: 2,
+                stroke: isActive ? "#F05032" : "#2D3748",
+            }}
+        />
+    );
+}
+
+const nodeTypes = { commit: CommitNode };
+const edgeTypes = { gitEdge: GitEdge };
+
+function PlaygroundFlowResizer({ nodes }: { nodes: Node[] }) {
+  const { fitView } = useReactFlow();
+  const prevNodesLength = React.useRef(nodes.length);
+
+  React.useEffect(() => {
+    if (nodes.length > 0 && nodes.length > prevNodesLength.current) {
+      setTimeout(() => {
+        window.requestAnimationFrame(() => {
+          fitView({ duration: 350, padding: 0.2, minZoom: 0.5, maxZoom: 1.5 });
+        });
+      }, 50);
+    }
+    prevNodesLength.current = nodes.length;
+  }, [nodes.length, fitView]);
+
+  return null;
 }
 
 type TabKey = 'basics' | 'branching' | 'history';
@@ -279,18 +448,19 @@ export default function PlaygroundPage() {
                   </div>
                   {isFolderOpen && (
                     <>
-                      <div className="flex items-center gap-1.5 text-xs font-mono py-0.5 text-[#555a6e] pl-4">
-                        <FileText size={14} className="shrink-0" />
-                        <span>app.js</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs font-mono py-0.5 text-[#555a6e] pl-4">
-                        <FileText size={14} className="shrink-0" />
-                        <span>index.js</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs font-mono py-0.5 text-[#555a6e] pl-4">
-                        <FileText size={14} className="shrink-0" />
-                        <span>utils.js</span>
-                      </div>
+                      {Object.entries((engineState.fileSystem.root as DirectoryNode).children)
+                        .sort(([aName, aNode], [bName, bNode]) => {
+                          if (aNode.type === bNode.type) return aName.localeCompare(bName);
+                          return aNode.type === "directory" ? -1 : 1;
+                        })
+                        .map(([childName, childNode]) => (
+                          <PlaygroundFileTreeNode
+                            key={childName}
+                            name={childName}
+                            node={childNode}
+                            depth={0}
+                          />
+                        ))}
                     </>
                   )}
               </div>
@@ -364,17 +534,39 @@ export default function PlaygroundPage() {
               </div>
             ) : (
               <ReactFlowProvider>
+                <PlaygroundFlowResizer nodes={nodes} />
                 <ReactFlow
                   nodes={nodes}
                   edges={edges}
+                  nodeTypes={nodeTypes}
+                  edgeTypes={edgeTypes}
                   fitView
-                  fitViewOptions={{ padding: 0.2 }}
+                  fitViewOptions={{ padding: 0.2, minZoom: 0.5, maxZoom: 1.5 }}
                   minZoom={0.5}
                   maxZoom={1.5}
+                  zoomOnScroll={true}
+                  panOnDrag={true}
+                  panOnScroll={false}
+                  zoomOnDoubleClick={false}
+                  zoomOnPinch={true}
+                  nodesDraggable={false}
+                  nodesConnectable={false}
+                  elementsSelectable={false}
                   proOptions={{ hideAttribution: true }}
                 >
-                  <Background color="#1f2330" gap={20} size={1.5} />
-                  <Controls className="fill-[#555a6e]" showInteractive={false} />
+                  <Controls 
+                    position="bottom-right"
+                    showInteractive={false} 
+                    className="
+                      !bg-[#1a1d27] !border !border-[#1f2330] !rounded-lg !overflow-hidden !shadow-lg
+                      [&_button]:!bg-[#1a1d27] 
+                      [&_button]:!border-b [&_button]:!border-[#1f2330] 
+                      [&_button_svg]:!fill-[#555a6e] [&_button_svg]:!transition-colors
+                      hover:[&_button]:!bg-[#1f2330] 
+                      hover:[&_button_svg]:!fill-[#e8eaf0]
+                      [&_button]:!transition-colors
+                    "
+                  />
                 </ReactFlow>
               </ReactFlowProvider>
             )}
