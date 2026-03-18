@@ -5,10 +5,17 @@ import { cn, ScrollArea } from "./docs-ui";
 
 const NAV_ITEMS = [
     { id: "init", title: "Initialize Repository", command: "git init" },
+    { id: "status", title: "Check Status", command: "git status" },
+    { id: "add", title: "Stage Changes", command: "git add" },
     { id: "commit", title: "Create Commit", command: "git commit" },
+    { id: "log", title: "View Commit History", command: "git log" },
+    { id: "diff", title: "Show Changes", command: "git diff" },
     { id: "branch", title: "Manage Branches", command: "git branch" },
     { id: "checkout", title: "Switch Branches", command: "git checkout" },
     { id: "merge", title: "Merge Branches", command: "git merge" },
+    { id: "revert", title: "Revert Commit", command: "git revert" },
+    { id: "reset-soft", title: "Soft Reset", command: "git reset --soft" },
+    { id: "reset-hard", title: "Hard Reset", command: "git reset --hard" },
     { id: "rebase", title: "Rebase Commits", command: "git rebase" },
     { id: "cherry-pick", title: "Cherry Pick", command: "git cherry-pick" },
 ];

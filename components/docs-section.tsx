@@ -14,9 +14,11 @@ export interface DocsSectionProps {
     beforeEdges: Edge[];
     afterNodes: Node[];
     afterEdges: Edge[];
+    beforeExtra?: React.ReactNode;
+    afterExtra?: React.ReactNode;
 }
 
-export function DocsSection({ id, title, command, description, beforeNodes, beforeEdges, afterNodes, afterEdges }: DocsSectionProps) {
+export function DocsSection({ id, title, command, description, beforeNodes, beforeEdges, afterNodes, afterEdges, beforeExtra, afterExtra }: DocsSectionProps) {
     const [isVisible, setIsVisible] = React.useState(false);
     const sectionRef = React.useRef<HTMLDivElement>(null);
 
@@ -74,10 +76,20 @@ export function DocsSection({ id, title, command, description, beforeNodes, befo
                                     Empty State (No Commits)
                                 </div>
                             )}
+                            {beforeExtra && (
+                                <div className="mt-4">
+                                    {beforeExtra}
+                                </div>
+                            )}
                         </TabsContent>
 
                         <TabsContent value="after" className="mt-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:zoom-in-[0.98] data-[state=active]:duration-500">
                             <GitFlowExample nodes={afterNodes} edges={afterEdges} />
+                            {afterExtra && (
+                                <div className="mt-4">
+                                    {afterExtra}
+                                </div>
+                            )}
                         </TabsContent>
                     </Tabs>
                 </CardContent>

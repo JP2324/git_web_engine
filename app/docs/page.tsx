@@ -147,6 +147,116 @@ const cherryAfterEdges = [
     { id: 'eb1-b2', source: 'b1', target: 'b2', type: 'gitEdge' }
 ];
 
+// 8. git status, 9. git add, 11. git diff (Read-Only 1 commit)
+const oneCommitReadOnlyNodes = [
+    { ...c1, data: { label: 'C1', branches: ['main'], isActive: true } }
+];
+const oneCommitReadOnlyEdges: Edge[] = [];
+
+// 10. git log (Read-Only 3 commits)
+const threeCommitReadOnlyNodes = [
+    { ...c1, data: { label: 'C1' } },
+    { ...c2, data: { label: 'C2' } },
+    { ...c3, data: { label: 'C3', branches: ['main'], isActive: true } }
+];
+const threeCommitReadOnlyEdges = [
+    { id: 'e1-2', source: 'c1', target: 'c2', type: 'gitEdge' },
+    { id: 'e2-3', source: 'c2', target: 'c3', type: 'gitEdge' }
+];
+
+const readOnlyNote = (
+    <div className="text-center text-sm italic text-text-secondary/80 bg-surface/30 p-2 rounded-lg border border-border/20">
+        This command does not modify commit history.
+    </div>
+);
+
+const statusAfterTerminal = (
+    <div className="mt-4 p-4 rounded-xl bg-background/80 border border-border/40 font-mono text-sm text-text-secondary shadow-inner">
+        <div className="text-text-primary mb-2">On branch main</div>
+        <div className="text-text-primary mb-1">Untracked files:</div>
+        <div className="text-accent mb-2">  (use "git add &lt;file&gt;..." to include in what will be committed)</div>
+        <div className="text-accent pl-4">feature.js</div>
+    </div>
+);
+
+const addAfterTerminal = (
+    <div className="mt-4 p-4 rounded-xl bg-background/80 border border-border/40 font-mono text-sm text-text-secondary shadow-inner">
+        <div className="text-text-primary mb-2">On branch main</div>
+        <div className="text-text-primary mb-1">Changes to be committed:</div>
+        <div className="text-green-500 mb-2">  (use "git restore --staged &lt;file&gt;..." to unstage)</div>
+        <div className="text-green-500 pl-4">new file:   feature.js</div>
+        <div className="mt-3 text-xs italic text-text-secondary/60 font-sans">
+            Note: The file <code className="bg-surface px-1 py-0.5 rounded border border-border/30">feature.js</code> is now in the staging area, ready to commit.
+        </div>
+    </div>
+);
+
+const logAfterTerminal = (
+    <div className="mt-4 p-4 rounded-xl bg-background/80 border border-border/40 font-mono text-sm text-text-secondary shadow-inner space-y-3">
+        <div>
+            <span className="text-accent">commit c3a8d9b</span> (HEAD -&gt; main)<br />
+            Author: User &lt;user@example.com&gt;<br />
+            Date:   Today<br /><br />
+            <span className="pl-4">Third commit</span>
+        </div>
+        <div>
+            <span className="text-accent">commit b2f7c6e</span><br />
+            Author: User &lt;user@example.com&gt;<br />
+            Date:   Yesterday<br /><br />
+            <span className="pl-4">Second commit</span>
+        </div>
+        <div>
+            <span className="text-accent">commit a1e5b4c</span><br />
+            Author: User &lt;user@example.com&gt;<br />
+            Date:   Two days ago<br /><br />
+            <span className="pl-4">Initial commit</span>
+        </div>
+    </div>
+);
+
+const diffAfterTerminal = (
+    <div className="mt-4 p-4 rounded-xl bg-background/80 border border-border/40 font-mono text-sm shadow-inner overflow-x-auto whitespace-pre">
+        <span className="text-text-primary font-bold">diff --git a/feature.js b/feature.js</span><br />
+        <span className="text-text-secondary">index 83db48f..f84236a 100644</span><br />
+        <span className="text-text-primary font-bold">--- a/feature.js</span><br />
+        <span className="text-text-primary font-bold">+++ b/feature.js</span><br />
+        <span className="text-blue-400">@@ -1,3 +1,4 @@</span><br />
+        <span className="text-text-secondary"> function init() {'{'}</span><br />
+        <span className="text-text-secondary">   console.log("ready");</span><br />
+        <span className="text-green-500">+  setupListeners();</span><br />
+        <span className="text-text-secondary"> {'}'}</span>
+    </div>
+);
+
+// 12. git revert
+const revertBeforeNodes = [
+    { ...c1, data: { label: 'C1' } },
+    { ...c2, data: { label: 'C2', branches: ['main'], isActive: true } }
+];
+const revertBeforeEdges = [
+    { id: 'e1-2', source: 'c1', target: 'c2', type: 'gitEdge' }
+];
+const revertAfterNodes = [
+    { ...c1, data: { label: 'C1' } },
+    { ...c2, data: { label: 'C2' } },
+    { ...c3, data: { label: 'C3', branches: ['main'], isActive: true, message: 'Revert "C2"' } }
+];
+const revertAfterEdges = [
+    { id: 'e1-2', source: 'c1', target: 'c2', type: 'gitEdge' },
+    { id: 'e2-3', source: 'c2', target: 'c3', type: 'gitEdge', data: { isActive: true } }
+];
+
+// 13 & 14. git reset --soft and git reset --hard
+const resetBeforeNodes = threeCommitReadOnlyNodes;
+const resetBeforeEdges = threeCommitReadOnlyEdges;
+const resetAfterNodes = [
+    { ...c1, data: { label: 'C1' } },
+    { ...c2, data: { label: 'C2', branches: ['main'], isActive: true } }
+];
+const resetAfterEdges = [
+    { id: 'e1-2', source: 'c1', target: 'c2', type: 'gitEdge', data: { isActive: true } }
+];
+
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -194,6 +304,42 @@ export default function DocsPage() {
                             />
 
                             <DocsSection
+                                id="status"
+                                title="Check Status"
+                                command="git status"
+                                description="Shows the current state of the working directory and staging area. Displays which files are untracked, which are staged for the next commit, and which have been modified since the last commit. As a read-only command, it observes state but never changes it."
+                                beforeNodes={oneCommitReadOnlyNodes}
+                                beforeEdges={oneCommitReadOnlyEdges}
+                                afterNodes={oneCommitReadOnlyNodes}
+                                afterEdges={oneCommitReadOnlyEdges}
+                                beforeExtra={readOnlyNote}
+                                afterExtra={
+                                    <>
+                                        {readOnlyNote}
+                                        {statusAfterTerminal}
+                                    </>
+                                }
+                            />
+
+                            <DocsSection
+                                id="add"
+                                title="Stage Changes"
+                                command="git add"
+                                description="Adds file contents from the working directory to the staging area, preparing them to be included in the next commit. You can stage all files at once with git add . or stage individual files with git add <filename>."
+                                beforeNodes={oneCommitReadOnlyNodes}
+                                beforeEdges={oneCommitReadOnlyEdges}
+                                afterNodes={oneCommitReadOnlyNodes}
+                                afterEdges={oneCommitReadOnlyEdges}
+                                beforeExtra={readOnlyNote}
+                                afterExtra={
+                                    <>
+                                        {readOnlyNote}
+                                        {addAfterTerminal}
+                                    </>
+                                }
+                            />
+
+                            <DocsSection
                                 id="commit"
                                 title="Create Commit"
                                 command="git commit -m 'message'"
@@ -202,6 +348,42 @@ export default function DocsPage() {
                                 beforeEdges={commitBeforeEdges}
                                 afterNodes={commitAfterNodes}
                                 afterEdges={commitAfterEdges}
+                            />
+
+                            <DocsSection
+                                id="log"
+                                title="View Commit History"
+                                command="git log"
+                                description="Displays the full commit history of the current branch, showing each commit's hash, author, date, and message. The most recent commit appears at the top. Use git log --oneline for a compact view. This command never modifies the repository."
+                                beforeNodes={threeCommitReadOnlyNodes}
+                                beforeEdges={threeCommitReadOnlyEdges}
+                                afterNodes={threeCommitReadOnlyNodes}
+                                afterEdges={threeCommitReadOnlyEdges}
+                                beforeExtra={readOnlyNote}
+                                afterExtra={
+                                    <>
+                                        {readOnlyNote}
+                                        {logAfterTerminal}
+                                    </>
+                                }
+                            />
+
+                            <DocsSection
+                                id="diff"
+                                title="Show Changes"
+                                command="git diff"
+                                description="Shows the differences between the working directory and the staging area, or between commits. Use it to review exactly what has changed in your files before staging or committing. This is a read-only inspection command."
+                                beforeNodes={oneCommitReadOnlyNodes}
+                                beforeEdges={oneCommitReadOnlyEdges}
+                                afterNodes={oneCommitReadOnlyNodes}
+                                afterEdges={oneCommitReadOnlyEdges}
+                                beforeExtra={readOnlyNote}
+                                afterExtra={
+                                    <>
+                                        {readOnlyNote}
+                                        {diffAfterTerminal}
+                                    </>
+                                }
                             />
 
                             <DocsSection
@@ -235,6 +417,39 @@ export default function DocsPage() {
                                 beforeEdges={mergeBeforeEdges}
                                 afterNodes={mergeAfterNodes}
                                 afterEdges={mergeAfterEdges}
+                            />
+
+                            <DocsSection
+                                id="revert"
+                                title="Revert Commit"
+                                command="git revert"
+                                description="Creates a new commit that undoes the changes introduced by a previous commit. Unlike reset, revert is non-destructive — the original commit remains in the history and a new undo commit is added on top. This is the safe way to undo changes on shared branches."
+                                beforeNodes={revertBeforeNodes}
+                                beforeEdges={revertBeforeEdges}
+                                afterNodes={revertAfterNodes}
+                                afterEdges={revertAfterEdges}
+                            />
+
+                            <DocsSection
+                                id="reset-soft"
+                                title="Soft Reset"
+                                command="git reset --soft"
+                                description="Moves the HEAD pointer back by one or more commits without discarding your changes. The changes from the undone commits remain in the staging area, ready to be recommitted. Use this to amend commit history while keeping your work intact."
+                                beforeNodes={resetBeforeNodes}
+                                beforeEdges={resetBeforeEdges}
+                                afterNodes={resetAfterNodes}
+                                afterEdges={resetAfterEdges}
+                            />
+
+                            <DocsSection
+                                id="reset-hard"
+                                title="Hard Reset"
+                                command="git reset --hard"
+                                description="Moves the HEAD pointer back by one or more commits and permanently discards all changes from the removed commits. Both the commits and their file changes are gone. Changes discarded permanently. Use with caution — this cannot be undone."
+                                beforeNodes={resetBeforeNodes}
+                                beforeEdges={resetBeforeEdges}
+                                afterNodes={resetAfterNodes}
+                                afterEdges={resetAfterEdges}
                             />
 
                             <DocsSection
