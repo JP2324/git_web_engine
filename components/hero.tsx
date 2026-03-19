@@ -172,7 +172,7 @@ export default function Hero() {
 
                         <div className="reveal flex flex-col sm:flex-row items-start sm:items-center gap-4" style={{ animationDelay: "0.2s" }}>
                             <Link
-                                href="/emulator"
+                                href="/learn/1"
                                 className="inline-flex items-center justify-center px-7 py-3.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-all duration-300 text-base glow-accent glow-accent-hover hover:scale-[1.03] active:scale-[0.98]"
                             >
                                 Let&apos;s Learn

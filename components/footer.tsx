@@ -18,10 +18,9 @@ function GitLogo() {
 }
 
 const footerLinks = [
-    { label: "About", href: "#about" },
-    { label: "GitHub", href: "https://github.com" },
-    { label: "Docs", href: "#docs" },
-    { label: "Contact", href: "#contact" },
+    { label: "About", href: "https://github.com/JP2324" },
+    { label: "GitHub", href: "https://github.com/JP2324/git_web_engine" },
+    { label: "Contact", href: "https://www.linkedin.com/in/jainampatel2324/" },
 ];
 
 export default function Footer() {
@@ -48,6 +47,8 @@ export default function Footer() {
                             <a
                                 key={link.label}
                                 href={link.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="text-sm text-text-secondary hover:text-text-primary transition-colors duration-200"
                             >
                                 {link.label}
