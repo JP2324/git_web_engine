@@ -270,7 +270,7 @@ export default function PlaygroundPage() {
   // Handle click outside for popovers
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as globalThis.Node | null)) {
         setActivePopover(null);
       }
     };
