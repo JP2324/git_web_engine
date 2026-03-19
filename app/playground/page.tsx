@@ -256,13 +256,40 @@ export default function PlaygroundPage() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [sessionHistory, setSessionHistory] = useState<Array<{ time: string; command: string; isGit: boolean }>>([]);
   
+  const [activePopover, setActivePopover] = useState<'repo' | 'files' | 'history' | null>(null);
+  
   const terminalEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const sidebarRef = React.useRef<HTMLDivElement>(null);
 
   // Terminal auto-scroll
   React.useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history]);
+
+  // Handle click outside for popovers
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setActivePopover(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Handle responsive Quick Reference closing
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsCheatsheetOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    // Initial check
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Derived Values
   const { nodes, edges } = React.useMemo(() => {
@@ -344,33 +371,38 @@ export default function PlaygroundPage() {
     <div className="min-h-screen lg:h-screen bg-[#0d0f14] flex flex-col overflow-x-hidden lg:overflow-hidden">
       <Navbar />
       
-      <main className="flex-1 w-full pt-28 pb-6 px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-4 lg:gap-6 min-h-0 lg:overflow-hidden">
+      <main className="flex-1 w-full pt-28 pb-6 max-[480px]:px-0 max-[480px]:gap-2 px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-4 lg:gap-6 min-h-0 lg:overflow-hidden">
       
       {/* 
         ========================================
         LEFT PANEL (Sidebar)
         ========================================
       */}
-      <div className="
+      <div 
+        ref={sidebarRef}
+        className="
         order-3 lg:order-1 
         w-full lg:w-[56px] xl:w-[22%] 
         h-auto lg:h-full 
-        bg-[#13161e] rounded-xl border border-[#1f2330] 
-        flex flex-col overflow-hidden shadow-lg lg:min-h-0
+        bg-[#13161e] rounded-xl max-[480px]:rounded-none border max-[480px]:border-x-0 border-[#1f2330] 
+        flex flex-col overflow-[visible_!important] xl:overflow-hidden shadow-lg lg:min-h-0 relative
       ">
         {/* Mobile Summary Strip (< 1024px) */}
         <div className="flex lg:hidden items-center justify-between w-full px-4 py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${engineState.git.isInitialized ? 'bg-[#28c840]' : 'bg-[#555a6e]'}`} />
               <GitBranch size={16} className="text-[#555a6e]" />
-              <span className="text-xs font-mono text-[#555a6e]">—</span>
+              <span className="text-xs font-mono text-[#555a6e]">
+                {engineState.git.isInitialized ? (engineState.git.currentBranch || "—") : "not initialized"}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <GitCommit size={16} className="text-[#555a6e]" />
-              <span className="text-xs font-mono text-[#8b90a0]">0 commits</span>
+              <span className="text-xs font-mono text-[#8b90a0]">{engineState.git.commits.length} commits</span>
             </div>
           </div>
-          <button onClick={handleReset} className="text-xs font-medium text-[#555a6e] hover:text-[#e8572a] transition-colors">
+          <button onClick={handleReset} className="text-xs font-medium text-[#555a6e] hover:text-[#e8572a] transition-colors ml-4">
             Reset
           </button>
         </div>
@@ -428,8 +460,43 @@ export default function PlaygroundPage() {
                 </div>
               </div>
             </div>
-            <div className="xl:hidden w-full flex justify-center py-2" title="Repository State">
-              <GitBranch size={20} className="text-[#555a6e] hover:text-[#e8eaf0] transition-colors" />
+            <div className="xl:hidden w-full flex justify-center py-2 relative" title="Repository State">
+              <button onClick={() => setActivePopover(activePopover === 'repo' ? null : 'repo')} className="text-[#555a6e] hover:text-[#e8eaf0] transition-colors p-1">
+                <GitBranch size={20} />
+              </button>
+              
+              {/* Repo State Popover */}
+              {activePopover === 'repo' && (
+                <div className="absolute left-[60px] top-0 w-[240px] bg-[#1a1d27] rounded-lg border border-[#1f2330] shadow-xl z-50 overflow-hidden">
+                  <div className="px-3 py-2 border-b border-[#1f2330] bg-[#13161e]">
+                    <h2 className="text-[10px] font-semibold tracking-widest uppercase text-[#555a6e]">Repository State</h2>
+                  </div>
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-[#1f2330]">
+                    <span className="text-[10px] text-[#555a6e] uppercase tracking-wide">Status</span>
+                    <span className="font-mono text-xs text-[#e8572a] opacity-70">
+                      {engineState.git.isInitialized ? "initialized" : "not initialized"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-[#1f2330]">
+                    <span className="text-[10px] text-[#555a6e] uppercase tracking-wide">Branch</span>
+                    <span className="font-mono text-xs text-[#555a6e]">
+                      {engineState.git.currentBranch || "—"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-[#1f2330]">
+                    <span className="text-[10px] text-[#555a6e] uppercase tracking-wide">Head</span>
+                    <span className="font-mono text-xs text-[#555a6e]">
+                      {engineState.git.branches[engineState.git.currentBranch]?.substring(0, 7) || "—"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <span className="text-[10px] text-[#555a6e] uppercase tracking-wide">Commits</span>
+                    <span className="font-mono text-xs text-[#8b90a0]">
+                      {engineState.git.commits.length}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -466,8 +533,48 @@ export default function PlaygroundPage() {
               </div>
               <p className="mt-3 text-[10px] text-[#555a6e] italic">File tree reflects working directory</p>
             </div>
-            <div className="xl:hidden w-full flex justify-center py-2" title="File Tree">
-              <Folder size={20} className="text-[#555a6e] hover:text-[#e8eaf0] transition-colors" />
+            <div className="xl:hidden w-full flex justify-center py-2 relative" title="File Tree">
+              <button onClick={() => setActivePopover(activePopover === 'files' ? null : 'files')} className="text-[#555a6e] hover:text-[#e8eaf0] transition-colors p-1">
+                <Folder size={20} />
+              </button>
+              
+              {/* File Tree Popover */}
+              {activePopover === 'files' && (
+                <div className="absolute left-[60px] top-0 w-[240px] bg-[#1a1d27] rounded-lg border border-[#1f2330] shadow-xl z-50 overflow-hidden max-h-[50vh] flex flex-col">
+                  <div className="px-3 py-2 border-b border-[#1f2330] bg-[#13161e] shrink-0">
+                    <h2 className="text-[10px] font-semibold tracking-widest uppercase text-[#555a6e]">File Tree</h2>
+                  </div>
+                  <div className="p-3 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-[#1f2330] scrollbar-track-transparent">
+                    <div className="flex flex-col gap-0.5">
+                      <div 
+                        className="flex items-center gap-1.5 text-xs font-mono py-0.5 text-[#8b90a0] cursor-pointer"
+                        onClick={() => setIsFolderOpen(!isFolderOpen)}
+                      >
+                        {isFolderOpen ? <ChevronDown size={14} className="shrink-0" /> : <ChevronRight size={14} className="shrink-0" />}
+                        <Folder size={14} className="shrink-0 text-[#e8eaf0] fill-[#e8eaf0]/20" />
+                        <span className="select-none">root/</span>
+                      </div>
+                      {isFolderOpen && (
+                        <>
+                          {Object.entries((engineState.fileSystem.root as DirectoryNode).children)
+                            .sort(([aName, aNode], [bName, bNode]) => {
+                              if (aNode.type === bNode.type) return aName.localeCompare(bName);
+                              return aNode.type === "directory" ? -1 : 1;
+                            })
+                            .map(([childName, childNode]) => (
+                              <PlaygroundFileTreeNode
+                                key={childName}
+                                name={childName}
+                                node={childNode}
+                                depth={0}
+                              />
+                            ))}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -488,8 +595,34 @@ export default function PlaygroundPage() {
               <div className="text-[10px] text-[#555a6e] italic pt-2 pb-2 text-center">— session start —</div>
             </div>
 
-            <div className="xl:hidden flex flex-col items-center pt-6 min-h-0 flex-1 overflow-y-auto" title="Session History">
-              <Clock size={20} className="text-[#555a6e] hover:text-[#e8eaf0] transition-colors" />
+            <div className="xl:hidden flex flex-col items-center pt-6 min-h-0 flex-1 overflow-visible relative" title="Session History">
+              <button onClick={() => setActivePopover(activePopover === 'history' ? null : 'history')} className="text-[#555a6e] hover:text-[#e8eaf0] transition-colors p-1 relative z-0">
+                <Clock size={20} />
+                {sessionHistory.length > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-[#e8572a] text-white text-[9px] font-bold px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center shadow-sm">
+                    {sessionHistory.length}
+                  </span>
+                )}
+              </button>
+              
+              {/* Session History Popover */}
+              {activePopover === 'history' && (
+                <div className="absolute left-[60px] bottom-0 w-[260px] bg-[#1a1d27] rounded-lg border border-[#1f2330] shadow-xl z-[100] overflow-hidden max-h-[60vh] flex flex-col">
+                  <div className="px-3 py-2 border-b border-[#1f2330] bg-[#13161e] shrink-0 flex items-center justify-between">
+                    <h2 className="text-[10px] font-semibold tracking-widest uppercase text-[#555a6e]">Session History</h2>
+                    <span className="text-[9px] text-[#555a6e]">{sessionHistory.length} cmds</span>
+                  </div>
+                  <div className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin scrollbar-thumb-[#1f2330] scrollbar-track-transparent min-h-0">
+                    {sessionHistory.map((log, i) => (
+                      <div key={i} className="flex items-start gap-2 py-1.5 border-b border-[#1f2330]/50 last:border-b-0">
+                        <span className="text-[10px] font-mono text-[#555a6e] mt-0.5 shrink-0">{log.time}</span>
+                        <span className={`text-xs font-mono ${log.isGit ? 'text-[#e8572a]' : 'text-[#8b90a0]'}`}>{log.command}</span>
+                      </div>
+                    ))}
+                    <div className="text-[10px] text-[#555a6e] italic pt-2 pb-1 text-center">— session start —</div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -506,10 +639,10 @@ export default function PlaygroundPage() {
         ========================================
       */}
       <div className="
-        order-2 
+        order-1 lg:order-2 
         w-full lg:flex-1 xl:w-[44%] 
-        h-[400px] lg:h-full 
-        bg-[#13161e] rounded-xl border border-[#1f2330] 
+        h-[300px] lg:h-full 
+        bg-[#13161e] rounded-xl max-[480px]:rounded-none border max-[480px]:border-x-0 border-[#1f2330] 
         flex flex-col min-h-0 overflow-hidden shadow-lg
       ">
         <div className="px-4 py-3 border-b border-[#1f2330] flex items-center justify-between shrink-0">
@@ -580,10 +713,10 @@ export default function PlaygroundPage() {
         ========================================
       */}
       <div className="
-        order-1 lg:order-3 
+        order-2 lg:order-3 
         w-full lg:w-[320px] xl:w-[34%] 
-        h-[400px] lg:h-full 
-        bg-[#13161e] rounded-xl border border-[#1f2330] 
+        min-h-[280px] h-[400px] lg:h-full 
+        bg-[#13161e] rounded-xl max-[480px]:rounded-none border max-[480px]:border-x-0 border-[#1f2330] 
         flex flex-col min-h-0 overflow-hidden shadow-lg
       ">
         {/* Terminal Sub-Section */}
