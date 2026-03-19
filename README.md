@@ -1,164 +1,140 @@
-# 🚀 Git Visual Emulator
+# Git Visual Emulator
 
-An interactive, visual-first Git learning platform built to help developers truly understand how Git works under the hood.
+An interactive, browser-based Git learning platform where developers learn Git by doing — not reading. Every command you type updates a live commit graph in real time.
 
-Instead of memorizing commands, users *see* branches, merges, rebases, and commit history evolve in real-time.
-
----
-
-## 🌑 Built With
-
-* **Next.js (App Router)**
-* **TypeScript**
-* **Tailwind CSS**
-* **shadcn/ui**
-* Fully Client-Side Architecture
+**Live at:** 
 
 ---
 
-## 🎯 Project Vision
+## What It Is
 
-Git is powerful — but confusing.
+Most Git tools either show you a static diagram or ask you to memorize commands. This project does neither. You get a real terminal, a live React Flow commit graph, and a structured exercise system that reacts to every command you run.
 
-This project aims to:
-
-* Visualize core Git internals
-* Teach essential Git workflows interactively
-* Provide structured exercises
-* Simulate Git behavior safely in the browser
-
-This is not a full Git reimplementation — it focuses only on **visualizable, high-impact commands**.
+The Git engine runs entirely in the browser — no backend, no server, no database. Every branch, commit, merge, rebase, and reset is simulated in memory using a custom-built engine.
 
 ---
 
-## 🖥 Current Status
+## Tech Stack
 
-✅ Landing Page Complete
-🔄 Git Engine (In Progress)
-🔄 Interactive Emulator (Upcoming)
-
----
-
-## 📚 V1 Learning Path (Core Git Foundations)
-
-The first version will focus only on the most essential and visual Git commands:
-
-### Supported Commands (V1)
-
-* `git init`
-* `git commit`
-* `git branch`
-* `git checkout`
-* `git merge`
-* `git rebase`
-* `git cherry-pick`
-
-These commands cover:
-
-* Commit graph creation
-* Branch pointers
-* HEAD movement
-* Fast-forward merges
-* Merge commits (multiple parents)
-* History rewriting (rebase)
-* Selective commit replay
-
-Commands like `stash`, `reset`, `reflog`, `submodules`, `hooks`, etc. are intentionally **out of scope for V1**.
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router, fully client-side) |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| Graph Rendering | React Flow (`@xyflow/react`) |
+| UI Primitives | Radix UI (Dialog, Select) |
+| Icons | Lucide React |
 
 ---
 
-## 🧠 Architecture Overview
+## Features
 
-The project is structured into four main layers:
+**10 Structured Exercises** — a curated learning path from `git init` to a full capstone workflow:
+
+1. Initialize and First Commit
+2. Multiple Commits
+3. Branch Creation
+4. Switching Branches
+5. Fast-Forward Merge
+6. Three-Way Merge
+7. Undoing with Reset
+8. Safe Undo with Revert
+9. Rebase
+10. Full Workflow (capstone)
+
+**Interactive Terminal** — a fully functional in-browser terminal with command history (up/down arrow), prompt path tracking, and realistic Git error messages.
+
+**Live Commit Graph** — built on React Flow, the graph updates on every command. Branches, merge commits, rebases, and resets all render correctly with proper parent-chain traversal.
+
+**Playground** — a free-form sandbox with no steps or restrictions, a session history log, repository state panel, and a quick reference cheatsheet.
+
+**Docs Page** — a visual Git reference for 14 core commands, each with Before/After graph visualizations.
+
+---
+
+## Supported Commands
+
+### Git
+`git init` · `git add` · `git commit` · `git status` · `git log` · `git branch` · `git checkout` · `git merge` · `git reset --soft` · `git reset --hard` · `git revert` · `git rebase`
+
+### Terminal
+`ls` · `cd` · `pwd` · `cat` · `touch` · `mkdir` · `rm` · `clear` · `help`
+
+---
+
+## Architecture
+
+The engine is structured in four layers:
 
 ```
-1. Git Engine (Pure Logic Layer)
-2. Command Parser
-3. Exercise System
-4. UI Layer
+Types  →  File System  →  Git State  →  Command Dispatcher
+                                              ↓
+                                      Graph Deriver  →  React Flow UI
 ```
 
-The Git engine models:
+**Git Engine** (`lib/engine/`) — pure TypeScript state machine. Models commits as graph nodes with snapshot arrays, branches as pointers, and uses BFS for ancestor traversal. Immutable — every command returns a new state object.
 
-* Commits as graph nodes
-* Branch references as pointers
-* HEAD state (branch or detached)
-* Merge commits with multiple parents
-* Rebase transformations
-* Cherry-pick duplication logic
+**Command Dispatcher** (`lib/engine/commandDispatcher.ts`) — parses raw terminal input, routes to the correct handler, enforces per-exercise allowed command lists.
 
-No backend.
-No database.
-Fully client-side simulation.
+**Graph Deriver** (`lib/graphDeriver.ts`) — converts `GitState` into React Flow nodes and edges. Computes reachable commits via parent-chain traversal (fixing the known `git reset` graph bug), assigns lane positions for branching layouts, and highlights the HEAD commit.
+
+**Exercise System** (`exercises/`) — each exercise is a config file defining the initial file structure, allowed commands, step instructions, goal description, and a `successCondition` function evaluated against live engine state.
 
 ---
 
-## 🎨 Design Philosophy
-
-* Dark-mode only
-* Git-inspired accent (`#F05032`)
-* Minimal, developer-focused aesthetic
-* Clean spacing and responsive layout
-* Premium SaaS-style presentation
-
----
-
-## 🛠 Local Development
-
-Clone the repository:
+## Local Development
 
 ```bash
-git clone https://github.com/your-username/git-visual-emulator.git
-cd git-visual-emulator
-```
-
-Install dependencies:
-
-```bash
+git clone https://github.com/JP2324/git_web_engine.git
+cd git_web_engine
 npm install
-```
-
-Run development server:
-
-```bash
 npm run dev
 ```
 
-Open:
+Open `http://localhost:3000`
+
+---
+
+## Project Structure
 
 ```
-http://localhost:3000
+app/
+  page.tsx              # Landing page
+  learn/[exerciseId]/   # Exercise pages
+  playground/           # Free-form sandbox
+  docs/                 # Git command reference
+
+components/
+  navbar.tsx
+  hero.tsx
+  footer.tsx
+  git-flow-example.tsx  # Reusable React Flow wrapper
+  docs-section.tsx
+  docs-sidebar.tsx
+
+exercises/
+  exercise-1/ through exercise-10/
+
+lib/
+  engine/
+    types.ts            # Core type definitions
+    fileSystem.ts       # Immutable FS operations
+    gitState.ts         # Git state factory + helpers
+    commandDispatcher.ts
+  commands/
+    git/                # gitInit, gitAdd, gitCommit, etc.
+    terminal/           # ls, cd, touch, rm, etc.
+  graphDeriver.ts       # GitState → React Flow nodes/edges
 ```
 
 ---
 
-## 📌 Why This Project?
+## Design
 
-This project demonstrates:
-
-* State modeling
-* Graph data structures
-* Command parsing
-* System design thinking
-* Interactive UI architecture
-* Developer tooling mindset
-
-This is not a CRUD app.
-It is a visual Git engine built in the browser.
+- Dark mode only
+- Git-inspired accent color: `#F05032`
+- Terminal-first learning — the graph is a consequence of commands, not the focus
+- No gamification — exercises reward understanding, not points
 
 ---
 
-## 🚧 Roadmap (V1)
-
-* [ ] Build core Git engine
-* [ ] Implement commit graph logic
-* [ ] Implement merge logic (fast-forward + merge commit)
-* [ ] Implement rebase logic
-* [ ] Implement cherry-pick logic
-* [ ] Build interactive terminal UI
-* [ ] Connect engine to graph visualization
-* [ ] Add structured exercise validation
-
----
-
-### ✨ Built for developers who think visually.
