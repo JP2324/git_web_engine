@@ -43,7 +43,7 @@ export function DocsSection({ id, title, command, description, beforeNodes, befo
     return (
         <div ref={sectionRef} id={id} className={cn("scroll-mt-24 lg:scroll-mt-32 space-y-12 transition-all duration-700 ease-out", isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}>
             <div className="space-y-5">
-                <h2 className="text-3xl font-bold tracking-tight text-text-primary flex items-center gap-4 relative">
+                <h2 className="text-3xl font-bold tracking-tight text-text-primary flex flex-wrap items-center gap-4 relative">
                     <span className="relative pb-1">
                         {title}
                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent to-transparent rounded-full" />

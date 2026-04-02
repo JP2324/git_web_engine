@@ -392,6 +392,7 @@ export default function ExercisePage() {
 
     // ---- Terminal auto-scroll ----
     useEffect(() => {
+        if (history.length === 0) return;
         terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [history]);
 

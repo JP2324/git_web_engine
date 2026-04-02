@@ -262,7 +262,7 @@ import Footer from "@/components/footer";
 
 export default function DocsPage() {
     return (
-        <div className="flex flex-col min-h-screen bg-background isolate relative">
+        <div className="flex flex-col min-h-screen bg-background isolate relative overflow-x-clip">
             {/* Background Radial Glow */}
             <div className="pointer-events-none fixed inset-0 flex justify-center z-[-1]">
                 <div className="w-[800px] h-[600px] bg-accent/5 rounded-full blur-[120px] opacity-70 translate-y-[-20%]" />
